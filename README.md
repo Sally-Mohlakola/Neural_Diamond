@@ -23,7 +23,23 @@ The surface of the diamond is traced exactly. Inside, a network takes where and 
 
 <br>
 
+## Architecture Overview
+
 <img src="docs/readme/architecture.png" width="100%" alt="The neural transport operator">
+
+<br>
+
+## True Facet Diamond Rendering
+
+<div align="center">
+
+<img src="docs/readme/truefacet_wipe_gia_deep.gif" width="32%" alt="GIA brilliant: deep decoder given the true exit facet against the reference">
+<img src="docs/readme/truefacet_wipe_pear_deep.gif" width="32%" alt="Pear: deep decoder given the true exit facet against the reference">
+<img src="docs/readme/truefacet_wipe_step_deep.gif" width="32%" alt="Step cut: deep decoder given the true exit facet against the reference">
+
+<sub><b>GIA brilliant</b> &nbsp;·&nbsp; <b>pear</b> &nbsp;·&nbsp; <b>step cut</b></sub>
+
+</div>
 
 <br>
 
