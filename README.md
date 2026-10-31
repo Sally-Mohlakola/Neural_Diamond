@@ -32,12 +32,11 @@ The surface of the diamond is traced exactly. Inside, a network takes where and 
 Tested on Ubuntu 22.04 with Mitsuba 3.8.0 and PyTorch 2.12.1. Mitsuba's LLVM backend is not available on native Windows, so use Linux or WSL.
 
 ```bash
-conda create -n diamond python=3.12
-conda activate diamond
-python -m pip install "mitsuba==3.8.0" torch numpy matplotlib pillow opencv-python-headless pypdf flip-evaluator lpips
+conda env create -f environment.yml
+conda activate jojo
 ```
 
-Install `ffmpeg` to write the animations. To check the installation, run the unit tests.
+To check the installation, run the unit tests.
 
 ```bash
 python -B -m unittest discover -s tests
