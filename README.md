@@ -5,7 +5,7 @@
 **Gopolang Mohlakola, Branden Ingram, and Pravesh Ranchod**<br>
 University of the Witwatersrand, 2026
 
-[**Project page**](https://sally-mohlakola.github.io/Neural_Rendering/)
+[**Project page**](https://sally-mohlakola.github.io/Neural_Diamond/)
 
 <img src="docs/readme/roll_decoders.gif" width="880" alt="GIA brilliant rolling: exact tracer, stochastic, clone (baseline), and deep decoder">
 
