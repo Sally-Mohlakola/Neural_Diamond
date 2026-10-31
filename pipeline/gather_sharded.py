@@ -1,0 +1,139 @@
+"""
+Gathers interior light paths in small, resumable shards written directly to disk, for pools too large for memory.
+Each shard covers a fixed slice of entry IDs with its own reproducible random stream so any shard can be skipped
+and regenerated independently. A manifest.json records the full sharding scheme alongside each shard's metadata.
+Supports a wall-clock time limit so cluster jobs can pause and resume without losing completed shards.
+"""
+
+import sys
+from pathlib import Path
+REPO = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(REPO))
+
+import argparse
+import hashlib
+import json
+import multiprocessing
+import time
+
+import numpy as np
+
+import pipeline.gather_learned_interior as gb
+from config.parameters import get_diamond_parameters
+
+
+# gather one shard: shard k always covers the same entry ids and the k-th random stream
+def _run_shard(task):
+    (index, diamond_name, entries, paths, max_depth, child, dispersion,
+     sampling, azimuth_range) = task
+    arrays, attempts = gb._worker((diamond_name, index*entries, entries, paths,
+                                   max_depth, child, dispersion, sampling, azimuth_range))
+    return index, arrays, attempts
+
+
+# the metadata every shard carries, the same as a gather_learned_interior pool plus the sharding scheme
+def shard_metadata(args, parameters, geometry, shards):
+    return dict(schema_version=1, diamond_name=args.diamond_name, parameters=parameters,
+                seed=args.seed, max_depth=args.max_depth,
+                dispersion=not args.no_dispersion, geometry_sha256=geometry,
+                coordinates='object_space',
+                direction_convention='entry points into stone; exit points out',
+                transport_mode='radiance',
+                conditioning='entry transmission forced; multiply entry_transmittance once',
+                status_codes={'escaped': 0, 'truncated': 1, 'invalid': 2},
+                entry_sampling=args.entry_sampling, azimuth_range=list(args.azimuth_range),
+                sharding=dict(shards=shards, entries_per_shard=args.entries_per_shard,
+                              paths_per_entry=args.paths_per_entry,
+                              seed_scheme='SeedSequence(seed).spawn(shards)[index]'))
+
+
+# gather a pool too big for memory as small shards written straight to disk, skipping shards already there
+def main():
+    parser = argparse.ArgumentParser(description='Gather interior transport in resumable shards.')
+    parser.add_argument('--output_dir', type=Path, required=True)
+    parser.add_argument('--diamond_name', default='pear_brilliant')
+    parser.add_argument('--records', type=int, required=True,
+                        help='Total paths to gather, rounded up to whole shards')
+    parser.add_argument('--paths_per_entry', type=int, default=16)
+    parser.add_argument('--entries_per_shard', type=int, default=8192)
+    parser.add_argument('--max_depth', type=int, default=128)
+    parser.add_argument('--seed', type=int, default=701)
+    parser.add_argument('--no_dispersion', action='store_true')
+    parser.add_argument('--entry_sampling', choices=['uniform', 'camera'], default='camera')
+    parser.add_argument('--azimuth_range', type=float, nargs=2, default=[0., 360.])
+    parser.add_argument('--workers', type=int, default=8)
+    parser.add_argument('--max_seconds', type=float, default=0,
+                        help='Stop starting new shards after this long; 0 = no limit')
+    args = parser.parse_args()
+
+    per_shard = args.entries_per_shard*args.paths_per_entry
+    shards = -(-args.records//per_shard)
+    args.output_dir.mkdir(parents=True, exist_ok=True)
+
+    parameters = get_diamond_parameters(args.diamond_name)
+    _, vertices, faces = gb.build_scene(parameters)
+    geometry = hashlib.sha256(vertices.tobytes()+faces.tobytes()).hexdigest()
+    metadata = shard_metadata(args, parameters, geometry, shards)
+    (args.output_dir/'manifest.json').write_text(json.dumps(metadata, indent=2))
+
+    children = np.random.SeedSequence(args.seed).spawn(shards)
+    todo = [k for k in range(shards) if not (args.output_dir/('shard_%04d.npz' % k)).exists()]
+    print('%d shards of %d records = %d records; %d already on disk, %d to gather'
+          % (shards, per_shard, shards*per_shard, shards-len(todo), len(todo)), flush=True)
+    if not todo:
+        return
+
+    began, done = time.perf_counter(), 0
+    tasks = iter([(k, args.diamond_name, args.entries_per_shard, args.paths_per_entry,
+                   args.max_depth, children[k], not args.no_dispersion,
+                   args.entry_sampling, tuple(args.azimuth_range))
+                  for k in todo])
+
+    with multiprocessing.Pool(args.workers) as pool:
+        pending = set()
+
+        # start the next shard, unless time is up or none are left
+        def submit():
+            if args.max_seconds and time.perf_counter()-began > args.max_seconds:
+                return False
+            task = next(tasks, None)
+            if task is None:
+                return False
+            pending.add(pool.apply_async(_run_shard, (task,)))
+            return True
+
+        for _ in range(args.workers):
+            if not submit():
+                break
+
+        while pending:
+            finished = [p for p in pending if p.ready()]
+            if not finished:
+                time.sleep(.2)
+                continue
+
+            for p in finished:
+                pending.discard(p)
+                index, arrays, attempts = p.get()
+
+                target = args.output_dir/('shard_%04d.npz' % index)
+                partial = target.with_suffix('.tmp.npz')
+                shard_meta = dict(metadata, shard=index, attempts=attempts)
+                np.savez_compressed(partial, **arrays, vertices=vertices, faces=faces,
+                                    metadata_json=np.array(json.dumps(shard_meta)))
+                partial.replace(target)
+
+                done += 1
+                submit()
+
+            elapsed = time.perf_counter()-began
+            print('  %d/%d shards this run, %.0f s, %.0f records/s'
+                  % (done, len(todo), elapsed, done*per_shard/max(elapsed, 1e-9)), flush=True)
+
+    remaining = sum(1 for k in range(shards)
+                    if not (args.output_dir/('shard_%04d.npz' % k)).exists())
+    print('finished this run: %d shards remaining' % remaining)
+
+
+if __name__ == '__main__':
+    main()

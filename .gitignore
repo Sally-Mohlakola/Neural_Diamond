@@ -1,0 +1,19 @@
+# data and generated output: these folders stay empty in the repository
+/renders/
+/checkpoints/
+/figures/
+legacy_rdm/renders/
+legacy_rdm/checkpoints/
+
+# python
+__pycache__/
+*.pyc
+
+# logs and local mesh output
+*.log
+ground_truth/diamond_animation/
+ground_truth/*.ply
+
+# test harness outputs and its local reference (machine-specific)
+tests/regression/output/
+tests/regression/reference/

@@ -1,0 +1,223 @@
+"""
+Renders a multi-frame orbit or tumble animation of a diamond using the learned interior operator.
+
+Each frame is dispatched as its own subprocess via render_learned_interior.py and run in parallel.
+Supports orbit (camera moves), tumble (stone rotates about Y), and three-axis tumble motions.
+Assembled PNG frames are encoded into an MP4 and GIF with ffmpeg; interrupted runs can be resumed.
+"""
+
+import sys
+from pathlib import Path
+REPO = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(REPO))
+
+import argparse
+import json
+import shutil
+import subprocess
+import time
+from concurrent.futures import ThreadPoolExecutor
+
+
+# run one frame render as its own process and keep its log
+def run(command, log):
+    log.parent.mkdir(parents=True, exist_ok=True)
+    done = subprocess.run([sys.executable, '-B'] + [str(c) for c in command],
+                          capture_output=True, text=True)
+    log.write_text((done.stdout or '') + (done.stderr or ''), encoding='utf-8')
+    if done.returncode != 0:
+        raise RuntimeError('Frame failed; see %s\n%s' % (log, (done.stderr or '')[-2000:]))
+
+
+# eval.py's rolling motion: one full turn about the Y axis, with camera and lights fixed
+def tumble_angles(index, frames, speed=1.0):
+    t = index/frames
+    return (0., 360.*t*speed, 0.)
+
+
+# the older three-axis tumble (2, 1.5 and 0.5 turns about X, Y and Z), kept to reproduce the pear_tumble renders
+def tumble_xyz_angles(index, frames, speed=1.0):
+    t = index/frames
+    return (360.*2.0*t*speed, 360.*1.5*t*speed, 360.*0.5*t*speed)
+
+
+# render one frame with render_learned_interior
+def render_frame(job):
+    (index, azimuth, directory, model, mode, seed, width, height, spp,
+     scene_depth, logs, rotation, stratify, dispersion, camera, oracle_facet) = job
+
+    command = [str(REPO/'pipeline'/'render_learned_interior.py'), '--model', model, '--output_dir', directory,
+               '--mode', mode, '--azimuth', '%g' % azimuth, '--seed', seed,
+               '--width', width, '--height', height, '--spp', spp,
+               '--scene_depth', scene_depth, '--camera', camera]
+    if rotation is not None:
+        command += ['--rotation_deg'] + ['%g' % v for v in rotation]
+    if stratify:
+        command.append('--stratify_wavelength')
+    if dispersion:
+        command += ['--dispersion', dispersion]
+    if oracle_facet:
+        command.append('--oracle_facet')
+
+    run(command, logs/('frame_%04d.log' % index))
+    return index, azimuth
+
+
+# encode the png frames as mp4 and gif with ffmpeg, never upscaling since that only magnifies the noise
+def encode(sequence, output, fps):
+    if shutil.which('ffmpeg') is None:
+        print('ffmpeg not found; PNG frames written but no video encoded')
+        return []
+
+    pattern = str(sequence/'frame_%04d.png')
+    written = []
+
+    video = output/'rotation.mp4'
+    subprocess.run(['ffmpeg', '-y', '-framerate', str(fps), '-i', pattern,
+                    '-c:v', 'libx264', '-pix_fmt', 'yuv420p', '-crf', '18',
+                    str(video)], check=True, capture_output=True)
+    written.append(video)
+
+    animated = output/'rotation.gif'
+    subprocess.run(['ffmpeg', '-y', '-framerate', str(min(fps, 15)), '-i', pattern,
+                    '-vf', "scale='min(480,iw)':-1:flags=lanczos,split[a][b];"
+                           '[a]palettegen[p];[b][p]paletteuse',
+                    str(animated)], check=True, capture_output=True)
+    written.append(animated)
+
+    return written
+
+
+# the animation options
+def parse_arguments():
+    parser = argparse.ArgumentParser(description='Orbit or tumble animation of the stone, one render per frame.')
+    parser.add_argument('--model', type=Path, required=True)
+    parser.add_argument('--output_dir', type=Path, required=True)
+    parser.add_argument('--mode', choices=['neural', 'analytic'], default='neural')
+    parser.add_argument('--frames', type=int, default=60)
+    parser.add_argument('--azimuth_start', type=float, default=0.)
+    parser.add_argument('--azimuth_sweep', type=float, default=360.,
+                        help='Total degrees travelled. A round brilliant has '
+                             'eight-fold symmetry, so 45 degrees already shows '
+                             'every distinct pose.')
+    parser.add_argument('--width', type=int, default=256)
+    parser.add_argument('--height', type=int, default=256)
+    parser.add_argument('--spp', type=int, default=32)
+    parser.add_argument('--scene_depth', type=int, default=8)
+    parser.add_argument('--seed', type=int, default=61)
+    parser.add_argument('--resume', action='store_true',
+                        help='Continue an interrupted animation in --output_dir: '
+                             'frames already rendered are kept, half-finished ones '
+                             'are redone. Settings must match the original run.')
+    parser.add_argument('--vary_seed', action='store_true',
+                        help='Use a different seed per frame. Off by default: a '
+                             'shared seed keeps the noise pattern stable between '
+                             'frames so the eye reads facet motion rather than '
+                             'flicker.')
+    parser.add_argument('--motion', choices=['orbit', 'tumble', 'tumble_xyz'], default='orbit',
+                        help='orbit moves the camera around a fixed stone. tumble '
+                             'turns the stone once about Y with camera and lights '
+                             'fixed, the motion of ground_truth/diamond.py and eval.py. '
+                             'tumble_xyz is the older three-axis tumble used for the '
+                             'pear_tumble renders.')
+    parser.add_argument('--camera', choices=('studio', 'spin', 'profile'),
+                        help='studio (the training view) or the side view of ground_truth/diamond.py; '
+                             'defaults to spin for --motion tumble and studio otherwise')
+    parser.add_argument('--rotation_speed', type=float, default=1.0,
+                        help='Turns multiplier for --motion tumble and tumble_xyz.')
+    parser.add_argument('--dispersion', type=Path,
+                        help='Learned dispersion head (train_dispersion.py); neural mode only.')
+    parser.add_argument('--stratify_wavelength', action='store_true',
+                        help='Spread the hero wavelengths evenly over the '
+                             'spectrum; unbiased, free, and reduces chromatic speckle.')
+    parser.add_argument('--oracle_facet', action='store_true',
+                        help='Supply the exact tracer\'s exit facet to the operator (the true-facet renders of E2); '
+                             'neural mode only.')
+    parser.add_argument('--fps', type=int, default=30)
+    parser.add_argument('--workers', type=int, default=4,
+                        help='Concurrent frame renders, about 250 MB each.')
+    args = parser.parse_args()
+
+    if args.frames < 2:
+        parser.error('--frames must be at least two')
+    if min(args.width, args.height, args.spp, args.scene_depth, args.workers, args.fps) < 1:
+        parser.error('Dimensions, spp, depth, workers and fps must be positive')
+    if args.camera is None:
+        args.camera = 'spin' if args.motion == 'tumble' else 'studio'
+    if args.output_dir.exists() and not args.resume:
+        raise FileExistsError('Refusing to replace %s (pass --resume to continue it)'
+                              % args.output_dir)
+
+    return args
+
+
+# render every frame in parallel (resuming if asked), then gather the frames into a video
+def main():
+    args = parse_arguments()
+
+    logs = args.output_dir/'logs'
+    step = args.azimuth_sweep/args.frames
+    jobs = []
+    skipped = 0
+    for index in range(args.frames):
+        target = args.output_dir/'raw'/('f%04d' % index)
+        if args.resume and (target/'frames'/'frame_0000.png').exists():
+            skipped += 1
+            continue
+        if target.exists():
+            shutil.rmtree(target)
+
+        azimuth = args.azimuth_start + index*step
+        motions = {'tumble': tumble_angles, 'tumble_xyz': tumble_xyz_angles}
+        rotation = (motions[args.motion](index, args.frames, args.rotation_speed)
+                    if args.motion in motions else None)
+        jobs.append((index, azimuth if args.motion == 'orbit' else args.azimuth_start,
+                     args.output_dir/'raw'/('f%04d' % index),
+                     args.model, args.mode,
+                     args.seed + (index if args.vary_seed else 0),
+                     args.width, args.height, args.spp, args.scene_depth, logs,
+                     rotation, args.stratify_wavelength, args.dispersion, args.camera, args.oracle_facet))
+
+    print('%d frames, %s, %gx%g degrees at %g deg/frame, %dx%d at %d spp, %d workers'
+          % (args.frames, args.mode, args.azimuth_start,
+             args.azimuth_start+args.azimuth_sweep, step,
+             args.width, args.height, args.spp, args.workers), flush=True)
+    if skipped:
+        print('resuming: %d frames already rendered, %d to go' % (skipped, len(jobs)),
+              flush=True)
+
+    begin = time.perf_counter()
+    done = skipped
+    with ThreadPoolExecutor(max_workers=args.workers) as pool:
+        for index, azimuth in pool.map(render_frame, jobs):
+            done += 1
+            print('  [%d/%d] frame %d' % (done, args.frames, index), flush=True)
+    seconds = time.perf_counter()-begin
+
+    sequence = args.output_dir/'frames'
+    sequence.mkdir(parents=True, exist_ok=True)
+    for index in range(args.frames):
+        source = args.output_dir/'raw'/('f%04d' % index)/'frames'/'frame_0000.png'
+        if not source.exists():
+            raise FileNotFoundError('Missing frame %d at %s' % (index, source))
+        shutil.copyfile(source, sequence/('frame_%04d.png' % index))
+
+    written = encode(sequence, args.output_dir, args.fps)
+    (args.output_dir/'animation.json').write_text(json.dumps(dict(
+        model=str(args.model), mode=args.mode, frames=args.frames,
+        azimuth_start=args.azimuth_start, azimuth_sweep=args.azimuth_sweep,
+        degrees_per_frame=step, width=args.width, height=args.height,
+        spp=args.spp, seed=args.seed, vary_seed=args.vary_seed, fps=args.fps,
+        motion=args.motion, camera=args.camera, rotation_speed=args.rotation_speed,
+        stratify_wavelength=args.stratify_wavelength,
+        dispersion=str(args.dispersion) if args.dispersion else None,
+        render_seconds=seconds, outputs=[str(p) for p in written]),
+        indent=2), encoding='utf-8')
+
+    print('\n%d frames in %.0f s -> %s' % (args.frames, seconds, args.output_dir))
+    for path in written:
+        print('  %s' % path)
+
+
+if __name__ == '__main__':
+    main()

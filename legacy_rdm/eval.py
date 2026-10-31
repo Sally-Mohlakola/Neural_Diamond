@@ -1,0 +1,757 @@
+#!/usr/bin/env python3
+"""
+Renders a rolling diamond animation using the legacy Neural Diamond BSDF.
+
+The hybrid BSDF blends analytic Fresnel R/T (DiamondFacet) with Model_M, a network that predicts
+multi-scatter colour f(wi, wo). The diamond rolls/tumbles in 3D with an orbiting camera.
+"""
+
+import os
+import sys
+import argparse
+import json
+import struct
+import tempfile
+import math
+import numpy as np
+import torch
+from pathlib import Path
+
+# There is a second, older copy of this project at the path below. It used to
+# be prepended to sys.path, which meant that under WSL -- where that path
+# exists -- `config`, `utils`, `neural` and `bsdf` all resolved to the *other*
+# checkout no matter which one you actually ran, so edits made here silently
+# had no effect and the two trees drifted apart. Append instead, so the
+# checkout this file lives in always wins and the old one is only a fallback.
+_here = os.path.dirname(os.path.abspath(__file__))
+if _here not in sys.path:
+    sys.path.insert(0, _here)
+
+project_root = '/mnt/c/Users/sally/research/diamond_rendering'
+if os.path.exists(project_root) and os.path.abspath(project_root) != _here:
+    sys.path.append(project_root)
+    for subdir in ['utils', 'config', 'neural', 'bsdf']:
+        p = os.path.join(project_root, subdir)
+        if os.path.exists(p): sys.path.append(p)
+
+# `config` must be imported before `mitsuba`/`drjit`. Dr.Jit initialises its
+# LLVM backend while the extension module is being imported, and it reads
+# DRJIT_LIBLLVM_PATH from the environment at that moment -- so the assignment
+# `config/__init__.py` makes has no effect at all if mitsuba came first, and
+# the failure is cached: every later mi.set_variant() then raises "the LLVM
+# backend is inactive because the LLVM shared library could not be found".
+# That is why these two imports sit below the config import rather than up in
+# the stdlib block with everything else.
+from config import device, variant
+
+import mitsuba as mi
+import drjit as dr
+
+from config import parameters as _params
+
+# The older checkout calls this table DIAMOND_PRESETS; this one calls it
+# DIAMOND_VARIANTS. Accept whichever the resolved `config` package provides.
+DIAMOND_VARIANTS = getattr(_params, 'DIAMOND_VARIANTS', None)
+if DIAMOND_VARIANTS is None:
+    DIAMOND_VARIANTS = _params.DIAMOND_PRESETS
+print(f"✓ config.parameters: {_params.__file__} "
+      f"({len(DIAMOND_VARIANTS)} variants)")
+
+# Register NeuralDiamond BSDF
+from bsdf.neural_bsdf import NeuralDiamond
+mi.register_bsdf("neural_diamond", lambda props: NeuralDiamond(props))
+
+mi.set_variant(variant)
+from mitsuba import ScalarTransform4f as sT
+
+from bsdf.analytic_bsdf import DiamondShading
+from bsdf.dispersive_dielectric import DispersiveDielectric
+from bsdf.dispersion import IS_SPECTRAL
+from bsdf.rdm_sampler import build_rdm_sampler
+from utils.studio_env import studio_lighting, display_exposure
+from neural.base_model import Model_M, Model_T
+from neural.drjit_wrapper import MiModelWrapper
+
+
+def parse_args():
+    parser = argparse.ArgumentParser(description="Render a rolling diamond animation with neural shading")
+    parser.add_argument("--checkpoint_name", type=str, required=True)
+    parser.add_argument("--diamond_name", type=str, default='round_brilliant_sharp_culet')
+    parser.add_argument("--spp", type=int, default=64, help="Samples per pixel per frame")
+    parser.add_argument("--width", type=int, default=512)
+    parser.add_argument("--height", type=int, default=512)
+    parser.add_argument("--output_dir", type=str, default="rolling_animation")
+    parser.add_argument("--frames", type=int, default=10, help="Number of animation frames")
+    parser.add_argument("--exposure", type=float, default=None,
+                        help="Linear multiplier applied before the gamma curve "
+                             "when writing the PNG (the EXR is always raw "
+                             "radiance). Defaults to utils.studio_env's "
+                             "display_exposure(), which is the value that puts "
+                             "the stone in midtone under the studio rig: about "
+                             "2%% of it clipped and about two thirds in "
+                             "midtone. It tracks the rig, so it stays correct "
+                             "if the panel radiances change.")
+    parser.add_argument("--r_alpha", type=float, default=0.05,
+                        help="Roughness of the analytic direct-reflection lobe S_R. "
+                             "Lower = sharper, brighter highlights (a real polished "
+                             "facet is near-perfectly smooth); GGX peak scales as 1/alpha^2.")
+    parser.add_argument("--no_neural", action='store_true',
+                        help="Use analytic dielectric only (ground truth reference)")
+    parser.add_argument("--fps", type=int, default=30, help="Video frames per second")
+    parser.add_argument("--orbit_radius", type=float, default=5.0, help="Camera orbit radius")
+    parser.add_argument("--rotation_speed", type=float, default=1.0, help="Rotation speed multiplier")
+    parser.add_argument("--clamp_value", type=float, default=10.0, help="Clamp neural BSDF output to this value")
+    # legacy_rdm change: Model_M is trained with exp() on its last layer (neural/base_model.py), but this
+    # renderer has always applied clamp(x, 0, 10) to that layer instead, which zeroes every prediction
+    # below 1. 'clamp' keeps that original behaviour; 'exp' renders what was trained.
+    parser.add_argument("--activation", choices=["clamp", "exp"], default="clamp",
+                        help="Model_M output activation at render time: the original clamp, or exp as trained")
+    parser.add_argument("--no_dispersion", action='store_true',
+                        help="Disable wavelength-dependent IOR. The control "
+                             "condition for any comparison about fire: "
+                             "everything else identical, dispersion off.")
+    return parser.parse_args()
+
+
+# Geometry presets. `config/parameters.py` is the single source of truth --
+# it is what `gather_rdm.py` and `train_models.py` read, so anything defined
+# only here would be a stone the model can never have been trained on.
+#
+# That is not hypothetical: this file used to carry its own dict, which did
+# not contain `round_diamond_gia` (the variant every checkpoint was gathered
+# on) but did contain `princess`. `renders/gt_test_12` and
+# `renders/diamond_test_12` were consequently rendered on a 4-main-facet
+# stone with 21 facets while run_07's model had been fitted to an
+# 8-main-facet stone with 57, and the neural render was being asked to shade
+# facet orientations that do not exist in its training set.
+#
+# The two names below that only ever existed here are kept as aliases so old
+# commands still resolve, but they now resolve to the shared definitions.
+#
+# Keep this table under its own name: rebinding `DIAMOND_VARIANTS` here would
+# shadow the import above, so the shared definitions could no longer be read
+# back, and `main()` looks the preset up as `DIAMOND_PRESETS`.
+DIAMOND_PRESETS = dict(DIAMOND_VARIANTS)
+for _alias, _target in (('round_brilliant_sharp_culet', 'round_diamond_sharp_culet'),
+                        ('round_brilliant_culet', 'round_diamond_gia')):
+    # Tolerate the older checkout, whose table may not carry these names.
+    if _alias not in DIAMOND_PRESETS and _target in DIAMOND_VARIANTS:
+        DIAMOND_PRESETS[_alias] = dict(DIAMOND_VARIANTS[_target])
+DIAMOND_PRESETS.setdefault('princess', dict(
+    girdle_radius=1.0, crown_angle_deg=35.0, pavilion_angle_deg=41.0,
+    table_frac=0.60, num_main_facets=4, culet_radius=0.0,
+    int_ior=2.419, ext_ior=1.000277,
+))
+
+
+def write_ply(path, vertices, normals, faces):
+    with open(path, 'wb') as f:
+        hdr = (
+            "ply\nformat binary_little_endian 1.0\n"
+            f"element vertex {len(vertices)}\n"
+            "property float x\nproperty float y\nproperty float z\n"
+            "property float nx\nproperty float ny\nproperty float nz\n"
+            f"element face {len(faces)}\n"
+            "property list uchar int vertex_indices\nend_header\n"
+        )
+        f.write(hdr.encode('ascii'))
+        f.write(np.concatenate([vertices, normals], axis=1).astype(np.float32).tobytes())
+        for face in faces:
+            f.write(struct.pack('<B', 3))
+            f.write(struct.pack('<3i', *face))
+
+
+def build_diamond_mesh(diamond_params):
+    # legacy_rdm change: dispatch on the variant's 'cut' through ground_truth.cuts, so pear and
+    # step variants render their own mesh; a round variant is built exactly as before
+    from ground_truth.brilliant_geometry import make_flat_shaded
+    from ground_truth.cuts import make_diamond
+    verts, faces = make_diamond(diamond_params)
+    fv, fn, _, ff = make_flat_shaded(verts, faces)
+    tmp = tempfile.NamedTemporaryFile(suffix='.ply', delete=False)
+    tmp.close()
+    write_ply(tmp.name, fv, fn, ff)
+    return tmp.name, fv, fn, ff
+
+
+def load_neural_bsdf_direct(checkpoint_dir, diamond_params, clamp_value=10.0,
+                            r_alpha=0.05, dispersion=True, output_activation='clamp'):
+    """Load neural BSDF with numerical stability."""
+    
+    model_m = Model_M().to(device)
+    model_m_path = os.path.join(checkpoint_dir, 'model_m.pth')
+    
+    if not os.path.exists(model_m_path):
+        print(f"  ⚠ Model_M not found at {model_m_path}")
+        return None
+    
+    model_m.load_state_dict(
+        torch.load(model_m_path, map_location=device, weights_only=False)
+    )
+    model_m.eval()
+    print("✓ Model_M weights loaded")
+    
+    # Test model and determine activation
+    test_wi = torch.tensor([[0.0, 0.0, 1.0]], device=device)
+    test_wo = torch.tensor([[0.5, 0.5, 0.7071]], device=device)
+    test_input = torch.cat([test_wi, test_wo], dim=1)
+    
+    with torch.no_grad():
+        m_pred = model_m(test_input)
+        print(f"  Model_M test output: {m_pred.tolist()}")
+        
+        # Check for NaN
+        if torch.isnan(m_pred).any() or torch.isinf(m_pred).any():
+            print("  ⚠ Model_M output contains nan/inf, using safe activation")
+            activation = lambda x: dr.maximum(0.0, dr.minimum(x, clamp_value))
+        else:
+            # Use clamp with ReLU for stability
+            activation = lambda x: dr.maximum(0.0, dr.minimum(x, clamp_value))
+            print(f"  ✓ Using clamped ReLU activation (max={clamp_value})")
+        if output_activation == 'exp':
+            # legacy_rdm change: exp as in training, capped at clamp_value like the original cap
+            activation = lambda x: dr.minimum(dr.exp(x), clamp_value)
+            print(f"  ✓ Using exp activation, matching Model_M's training (max={clamp_value})")
+
+    class WrapperWithSkip(MiModelWrapper):
+        def test(self, samples=42900):
+            pass
+    
+    # Build wrapper with stable activation
+    mlp_m = WrapperWithSkip(model_m, activation)
+    print("✓ DrJIT wrapper built for Model_M")
+    
+    props = mi.Properties()
+    props['int_ior'] = diamond_params['int_ior']
+    props['ext_ior'] = diamond_params['ext_ior']
+    props['type'] = 'neural_diamond'
+    props['r_alpha'] = r_alpha
+    props['dispersion'] = dispersion
+
+    bsdf = NeuralDiamond(props)
+    bsdf.model_m = mlp_m
+
+    # Load Model_T (transmittance fraction). Without this, eval_model_t()
+    # silently falls back to plain analytic Fresnel every time it's called.
+    model_t_path = os.path.join(checkpoint_dir, 'model_t.pth')
+    if os.path.exists(model_t_path):
+        model_t = Model_T().to(device)
+        try:
+            model_t.load_state_dict(
+                torch.load(model_t_path, map_location=device, weights_only=False)
+            )
+            model_t.eval()
+            mlp_t = WrapperWithSkip(model_t, lambda x: dr.clamp(x, 0.0, 1.0))
+            bsdf.model_t = mlp_t
+            print("✓ Model_T weights loaded")
+        except RuntimeError as e:
+            # Most common cause: the checkpoint was trained against a
+            # different Model_T architecture than the one currently defined
+            # in neural/base_model.py (e.g. a 3-channel output vs. today's
+            # 1-channel scalar transmittance) -- a shape mismatch, not a
+            # missing-file problem. Don't let it take down the whole render;
+            # fall back to analytic Fresnel and say exactly why.
+            print(f"  ⚠ Model_T checkpoint at {model_t_path} doesn't match "
+                  f"the current Model_T architecture ({e}). "
+                  f"Falling back to analytic Fresnel for R/T ratio -- "
+                  f"retrain Model_T or point checkpoint_name at a run "
+                  f"produced with the current architecture to fix this.")
+    else:
+        print(f"  ⚠ Model_T not found at {model_t_path} -- "
+              f"falling back to analytic Fresnel for R/T ratio")
+
+    # Build and attach the RDM alias sampler. Without this, sample_from_rdm()
+    # silently falls back to uniform-hemisphere direction sampling, which is
+    # a massive importance-sampling mismatch against Model_M's actual
+    # (peaked, facet-dependent) output distribution -- that mismatch is what
+    # was producing the per-facet noise in the renders.
+    rdm_sampler = build_rdm_sampler(checkpoint_dir)
+    bsdf.rdm_sampler = rdm_sampler
+
+    # Add a clamp to the BSDF output
+    def safe_eval(bsdf, *args, **kwargs):
+        result = bsdf.__class__.eval(bsdf, *args, **kwargs)
+        # Clamp to prevent extreme values
+        return dr.clamp(result, 0.0, clamp_value)
+    
+    # Monkey patch eval for safety
+    bsdf.eval = safe_eval.__get__(bsdf, NeuralDiamond)
+    
+    print(f"✓ NeuralDiamond BSDF ready: {bsdf.to_string()}")
+    return bsdf
+
+
+def load_analytic_bsdf(diamond_params, dispersion=True):
+    """
+    Analytic dielectric for the ground-truth path.
+
+    Under a spectral variant this is the dispersive replacement, which is
+    what actually produces fire -- Mitsuba's stock `dielectric` takes one
+    scalar IOR and stays achromatic even in a spectral variant, so simply
+    switching variants changes nothing visible.
+    """
+    if IS_SPECTRAL and dispersion:
+        return {
+            'type': 'dispersive_dielectric',
+            'int_ior': diamond_params['int_ior'],
+            'ext_ior': diamond_params['ext_ior'],
+            'dispersion': True,
+        }
+    return {
+        'type': 'dielectric',
+        'int_ior': diamond_params['int_ior'],
+        'ext_ior': diamond_params['ext_ior'],
+    }
+
+
+def rotate_vertex(v, angle_x, angle_y, angle_z):
+    """Apply 3D rotation to a single vertex."""
+    x, y, z = v
+    
+    # Rotate around X axis
+    cos_a = math.cos(angle_x)
+    sin_a = math.sin(angle_x)
+    y1 = y * cos_a - z * sin_a
+    z1 = y * sin_a + z * cos_a
+    x1 = x
+    
+    # Rotate around Y axis
+    cos_b = math.cos(angle_y)
+    sin_b = math.sin(angle_y)
+    x2 = x1 * cos_b + z1 * sin_b
+    z2 = -x1 * sin_b + z1 * cos_b
+    y2 = y1
+    
+    # Rotate around Z axis
+    cos_c = math.cos(angle_z)
+    sin_c = math.sin(angle_z)
+    x3 = x2 * cos_c - y2 * sin_c
+    y3 = x2 * sin_c + y2 * cos_c
+    z3 = z2
+    
+    return np.array([x3, y3, z3], dtype=np.float32)
+
+
+def rotate_vertices(vertices, angles):
+    """Apply 3D rotation to all vertices."""
+    angle_x, angle_y, angle_z = angles
+    return np.array([rotate_vertex(v, angle_x, angle_y, angle_z) for v in vertices], dtype=np.float32)
+
+
+def create_rotated_ply(ply_path, vertices, normals, faces, frame_num, total_frames, rotation_speed=1.0):
+    """Create a rotated PLY file for a specific frame."""
+    
+    # Calculate rolling angles - smooth tumbling motion
+    t = frame_num / total_frames
+    
+    # Use smoother interpolation for the rolling motion
+    # This prevents sudden jumps that can cause rendering artifacts
+    angle_x = 2.0 * 2 * math.pi * t * rotation_speed
+    angle_y = 1.5 * 2 * math.pi * t * rotation_speed  
+    angle_z = 0.5 * 2 * math.pi * t * rotation_speed
+    
+    angles = (angle_x, angle_y, angle_z)
+    
+    # Rotate vertices and normals
+    rotated_verts = rotate_vertices(vertices, angles)
+    rotated_normals = rotate_vertices(normals, angles)
+    
+    # Write rotated PLY
+    tmp_path = ply_path.replace('.ply', f'_frame_{frame_num:04d}.ply')
+    write_ply(tmp_path, rotated_verts, rotated_normals, faces)
+    
+    return tmp_path, angles
+
+
+def create_scene(diamond_params, bsdf, width, height, frame_idx, total_frames, 
+                 ply_path, vertices, normals, faces, orbit_radius, rotation_speed):
+    """Build scene with diamond rotating around Y axis (no flipping)."""
+    
+    t = frame_idx / total_frames
+    
+    # Rotation around Y axis only - full 360° rotation
+    angle = 2 * math.pi * t * rotation_speed
+    
+    # Rotate vertices around Y axis
+    rotated_verts = []
+    cos_a = math.cos(angle)
+    sin_a = math.sin(angle)
+    for v in vertices:
+        x, y, z = v
+        rx = x * cos_a + z * sin_a
+        ry = y  # Y stays the same
+        rz = -x * sin_a + z * cos_a
+        rotated_verts.append([rx, ry, rz])
+    rotated_verts = np.array(rotated_verts, dtype=np.float32)
+    
+    # Rotate normals the same way
+    rotated_normals = []
+    for n in normals:
+        nx, ny, nz = n
+        rnx = nx * cos_a + nz * sin_a
+        rny = ny  # Y stays the same
+        rnz = -nx * sin_a + nz * cos_a
+        rotated_normals.append([rnx, rny, rnz])
+    rotated_normals = np.array(rotated_normals, dtype=np.float32)
+    
+    # Write rotated PLY
+    rotated_ply_path = ply_path.replace('.ply', f'_frame_{frame_idx:04d}.ply')
+    write_ply(rotated_ply_path, rotated_verts, rotated_normals, faces)
+    
+    # Camera stays fixed (or orbits slowly)
+    cam_x = 0.0
+    cam_y = 1.8
+    cam_z = 4.0
+    
+    # Optional: slight camera orbit around diamond
+    # cam_angle = 0.3 * 2 * math.pi * t  # Slow orbit
+    # cam_x = orbit_radius * math.sin(cam_angle) * 0.3
+    # cam_z = orbit_radius * math.cos(cam_angle) * 0.3
+    
+    ground_bsdf = {
+        'type': 'diffuse',
+        'reflectance': {'type': 'rgb', 'value': [0.12, 0.12, 0.14]},
+    }
+
+    scene_dict = {
+        'type': 'scene',
+
+        'integrator': {
+            'type': 'path',
+            # A diamond total-internally-reflects a lot, and a path that hits
+            # the cap contributes exactly 0 -- it reads as an unshaded black
+            # patch. Measured share of the stone below the black point on
+            # round_diamond_gia: 33.1% at depth 24, 30.2% at 64, 30.0% at 128.
+            # Converged by 64; the rest of the black is a lighting problem,
+            # not a truncation one (see utils/studio_env.AMBIENT_RADIANCE).
+            'max_depth': 64,
+        },
+
+        'sensor': {
+            'type': 'perspective',
+            'fov': 30,
+            'to_world': sT.look_at(
+                origin=[cam_x, cam_y, cam_z],
+                target=[0.0, 0.0, 0.0],
+                up=[0.0, 1.0, 0.0],
+            ),
+            'film': {
+                'type': 'hdrfilm',
+                'width': width,
+                'height': height,
+                'pixel_format': 'rgb',
+                'rfilter': {'type': 'gaussian'},
+            },
+            'sampler': {
+                'type': 'independent',
+                'sample_count': 256,
+            },
+        },
+
+        # Lighting comes from utils/studio_env.py. It must not be a single
+        # constant environment: every path that escapes the stone would then
+        # return the same radiance whatever route it took, so the facets
+        # render as flat unshaded grey and dispersion cannot show colour.
+        **studio_lighting(),
+
+        'ground': {
+            'type': 'rectangle',
+            'to_world': sT.translate([0, 0, -0.9]).scale([8, 8, 1]),
+            'bsdf': ground_bsdf,
+        },
+
+        'diamond': {
+            'type': 'ply',
+            'filename': rotated_ply_path,
+            'bsdf': bsdf,
+        },
+    }
+
+    scene = mi.load_dict(scene_dict)
+
+    # Clean up temporary PLY file (after scene is built)
+    try:
+        os.unlink(rotated_ply_path)
+    except OSError:
+        pass
+
+    return scene
+
+
+def tonemap(image, exposure=1.0):
+    img = np.array(image) * exposure
+    img = np.clip(img, 0.0, 1.0)
+    img = np.power(img, 1.0 / 2.2)
+    return (img * 255).astype(np.uint8)
+
+
+def render_frame(scene, spp, frame_idx, total_frames):
+    """Render a single frame with error handling."""
+    print(f"  Rendering frame {frame_idx+1}/{total_frames}...")
+    
+    try:
+        # Progressive rendering with batches
+        image = None
+        batch_size = min(8, spp)
+        
+        for i in range(0, spp, batch_size):
+            batch_spp = min(batch_size, spp - i)
+            img = mi.render(scene, spp=batch_spp, seed=i + frame_idx * 10000)
+            
+            # Check for NaN in rendered image
+            img_np = np.array(img)
+            if np.isnan(img_np).any() or np.isinf(img_np).any():
+                print(f"    ⚠ Warning: NaN/Inf detected in frame {frame_idx+1}, replacing with zeros")
+                img_np = np.nan_to_num(img_np, nan=0.0, posinf=0.0, neginf=0.0)
+                img = mi.TensorXf(img_np)
+            
+            # `mi.render` already returns the *mean* over its own samples, so
+            # the batches must be combined as a sample-weighted mean. Summing
+            # the batch means and then dividing by the total sample count
+            # divided every frame by an extra factor of `batch_size` (8x at the
+            # default spp), which is what made the stone render as flat black
+            # with a few blown-out facets and no midtones in between.
+            contribution = img * batch_spp
+            image = contribution if image is None else image + contribution
+
+            # Force the accumulation to actually run, then drop both caches
+            # before the next batch.
+            #
+            # The kernel-cache flush is not a memory optimisation, it is what
+            # keeps this loop from crashing. Each batch is a fresh `mi.render`
+            # with a new seed, so it compiles a new kernel, and Dr.Jit's LLVM
+            # 18 ORC session on Windows/COFF dies once a few of those have
+            # accumulated -- the process aborts (exit 127) with
+            #
+            #   JIT session error: Failed to materialize symbols:
+            #     { (main, { __ymm@000000070000000600000005..., ... }) }
+            #
+            # Measured on round_diamond_deep at 128px: 48 spp (6 batches) is
+            # the last value that survives, 56 spp (7 batches) aborts. It
+            # tracks batch count, not sample count or film size -- 768px at 4
+            # spp is 2.4M samples in one batch and is fine, while 128px at 64
+            # spp is 1M samples in eight batches and is not. Releasing the
+            # compiled modules after each batch keeps the session small enough
+            # that arbitrary spp works. (This is the same LLVM 18 JIT fragility
+            # that utils/studio_env.py documents as its reason for using area
+            # lights instead of an envmap.)
+            #
+            # `dr.eval` has to come first: flushing the kernel cache while
+            # `image` is still an unevaluated expression would throw away the
+            # kernel that expression is waiting on.
+            dr.eval(image)
+            dr.flush_malloc_cache()
+            dr.flush_kernel_cache()
+        
+        image /= spp
+        return image
+        
+    except Exception as e:
+        # `args` is not in scope here, so referencing it turned every render
+        # failure into a NameError that hid the real cause. Take the frame
+        # size from the sensor instead.
+        print(f"    ⚠ Error rendering frame {frame_idx+1}: {e}")
+        w, h = scene.sensors()[0].film().crop_size()
+        return mi.TensorXf(np.zeros((h, w, 3), dtype=np.float32))
+
+
+def create_animation_frames(args, bsdf, diamond_params, vertices, normals, faces):
+    """Render all animation frames."""
+    output_dir = Path(args.output_dir)
+    output_dir.mkdir(parents=True, exist_ok=True)
+    
+    frames_dir = output_dir / "frames"
+    frames_dir.mkdir(exist_ok=True)
+    
+    # Create base PLY path
+    ply_path = os.path.join(tempfile.gettempdir(), 'diamond_base.ply')
+    write_ply(ply_path, vertices, normals, faces)
+    
+    print(f"\n🎬 Rendering {args.frames} rotation animation frames...")
+    print(f"   SPP: {args.spp}")
+    print(f"   Resolution: {args.width}×{args.height}")
+    print(f"   Rotation speed: {args.rotation_speed}x")
+    print(f"   Output: {output_dir}")
+    print(f"   Camera: fixed at [0, 1.8, 4.0]")
+    
+    frames = []
+    failed_frames = []
+    
+    for frame_idx in range(args.frames):
+        # Build scene for this frame
+        try:
+            scene = create_scene(
+                diamond_params,
+                bsdf,
+                args.width,
+                args.height,
+                frame_idx,
+                args.frames,
+                ply_path,
+                vertices,
+                normals,
+                faces,
+                args.orbit_radius,
+                args.rotation_speed
+            )
+        except Exception as e:
+            print(f"  ⚠ Error building scene for frame {frame_idx+1}: {e}")
+            failed_frames.append(frame_idx)
+            continue
+        
+        # Render frame
+        image = render_frame(scene, args.spp, frame_idx, args.frames)
+        
+        # Save tonemapped PNG
+        tonemapped = tonemap(np.array(image), args.exposure)
+        frame_path = frames_dir / f"frame_{frame_idx:04d}.png"
+        from PIL import Image
+        Image.fromarray(tonemapped, 'RGB').save(frame_path)
+        frames.append(frame_path)
+        
+        # Save HDR for quality
+        hdr_path = frames_dir / f"frame_{frame_idx:04d}.exr"
+        mi.util.write_bitmap(str(hdr_path), image)
+        
+        # Clean up
+        dr.flush_malloc_cache()
+    
+    # Clean up base PLY
+    try:
+        os.unlink(ply_path)
+    except OSError:
+        pass
+    
+    if failed_frames:
+        print(f"\n⚠ Warning: {len(failed_frames)} frames failed: {failed_frames}")
+    
+    print(f"\n✅ {len(frames)} frames rendered successfully!")
+    return frames
+
+
+def create_video(frames, output_dir, fps=30):
+    """Create MP4 video and GIF from rendered frames."""
+    try:
+        import subprocess
+        
+        output_dir = Path(output_dir)
+        video_path = output_dir / "diamond_rolling.mp4"
+        
+        # Check if frames exist
+        frame_pattern = output_dir / 'frames' / 'frame_*.png'
+        if not list(output_dir.glob('frames/frame_*.png')):
+            print("  ⚠ No frames found, skipping video creation")
+            return
+        
+        # Create MP4 with smooth playback
+        cmd = [
+            'ffmpeg', '-y',
+            '-framerate', str(fps),
+            '-pattern_type', 'glob',
+            '-i', str(output_dir / 'frames' / 'frame_*.png'),
+            '-c:v', 'libx264',
+            '-pix_fmt', 'yuv420p',
+            '-crf', '18',
+            '-preset', 'medium',
+            '-vf', 'scale=trunc(iw/2)*2:trunc(ih/2)*2',
+            str(video_path)
+        ]
+        
+        print(f"\n🎬 Creating video: {video_path}")
+        try:
+            subprocess.run(cmd, check=True, capture_output=True)
+            print(f"✅ Video created: {video_path}")
+        except subprocess.CalledProcessError as e:
+            tail = e.stderr.decode(errors='replace').strip().splitlines()
+            print(f"  ⚠ Could not create video: {tail[-1] if tail else e}")
+            return
+        
+        # Create GIF
+        gif_path = output_dir / "diamond_rolling.gif"
+        cmd_gif = [
+            'ffmpeg', '-y',
+            '-framerate', str(min(fps, 15)),
+            '-pattern_type', 'glob',
+            '-i', str(output_dir / 'frames' / 'frame_*.png'),
+            '-vf', 'scale=480:-1:flags=lanczos,split[s0][s1];[s0]palettegen[p];[s1][p]paletteuse',
+            '-loop', '0',
+            str(gif_path)
+        ]
+        
+        try:
+            subprocess.run(cmd_gif, check=True, capture_output=True)
+            print(f"✅ GIF created: {gif_path}")
+        except Exception as e:
+            print(f"  ⚠ Could not create GIF: {e}")
+            
+    except FileNotFoundError:
+        print("  ⚠ ffmpeg not found - skipping video creation")
+        print("  Install ffmpeg: sudo apt install ffmpeg")
+
+
+def main():
+    args = parse_args()
+    if args.exposure is None:
+        args.exposure = display_exposure()
+
+    checkpoint_dir = os.path.join('checkpoints', args.checkpoint_name)
+    if not os.path.exists(checkpoint_dir):
+        raise FileNotFoundError(f"Checkpoint not found: {checkpoint_dir}")
+    print(f"✓ Checkpoint: {checkpoint_dir}")
+    print(f"✓ Variant: {variant}")
+
+    # Load preset
+    preset_path = os.path.join(checkpoint_dir, 'diamond_preset.json')
+    if os.path.exists(preset_path):
+        with open(preset_path) as f:
+            diamond_params = json.load(f)
+        print("✓ Parameters: from checkpoint JSON")
+    else:
+        diamond_params = DIAMOND_PRESETS.get(args.diamond_name)
+        if diamond_params is None:
+            raise ValueError(f"Unknown preset: {args.diamond_name}")
+        diamond_params = diamond_params.copy()
+        print(f"✓ Parameters: preset '{args.diamond_name}'")
+
+    # Build diamond mesh and get vertices/normals/faces
+    ply_path, vertices, normals, faces = build_diamond_mesh(diamond_params)
+    
+    # Build BSDF
+    dispersion = IS_SPECTRAL and not args.no_dispersion
+    print(f"✓ Variant: {variant}"
+          f"{' (spectral)' if IS_SPECTRAL else ' (RGB -- fire is not representable)'}")
+    print(f"✓ Dispersion: {'on' if dispersion else 'off'}")
+
+    if args.no_neural:
+        print("✓ Mode: analytic ground truth (--no_neural)")
+        bsdf = load_analytic_bsdf(diamond_params, dispersion)
+    else:
+        print("✓ Mode: neural shading (Model_M + DiamondFacet)")
+        bsdf = load_neural_bsdf_direct(checkpoint_dir, diamond_params,
+                                       args.clamp_value, args.r_alpha, dispersion, args.activation)
+        if bsdf is None:
+            print("⚠ Neural BSDF failed to load - falling back to dielectric")
+            bsdf = load_analytic_bsdf(diamond_params, dispersion)
+
+    # Disable megakernel
+    for flag in [dr.JitFlag.LoopRecord, dr.JitFlag.VCallRecord, dr.JitFlag.VCallOptimize]:
+        dr.set_flag(flag, False)
+    print("✓ Megakernel disabled")
+
+    # Render animation
+    frames = create_animation_frames(args, bsdf, diamond_params, vertices, normals, faces)
+
+    # Create video
+    create_video(frames, Path(args.output_dir), fps=args.fps)
+
+    print(f"\n✅ Rolling animation complete!")
+    print(f"   Frames: {Path(args.output_dir) / 'frames'}")
+    print(f"   Video: {args.output_dir}/diamond_rolling.mp4")
+    if os.path.exists(Path(args.output_dir) / "diamond_rolling.gif"):
+        print(f"   GIF: {args.output_dir}/diamond_rolling.gif")
+    
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
