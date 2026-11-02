@@ -33,7 +33,7 @@ p, h1, h2, h3 { margin: 0; font-weight: 300; }
 .hi { color: var(--white); }
 
 /* video blending: fade each render's edges into the black page */
-.hero .glass { mix-blend-mode: screen; }
+
 
 /* top bar */
 .top { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 16px 0; flex-wrap: wrap; }
@@ -44,20 +44,20 @@ p, h1, h2, h3 { margin: 0; font-weight: 300; }
 /* hero */
 .hero { position: relative; border: 1px solid var(--line); border-radius: 22px; min-height: min(82vh, 760px); display: grid; place-items: center; overflow: hidden; text-align: center; }
 .hero h1 { position: relative; z-index: 1; font-weight: 200; font-size: clamp(64px, 13vw, 190px); line-height: .86; letter-spacing: -.045em; }
-.hero .obj { position: absolute; z-index: 2; width: min(46vw, 470px); left: 50%; top: 50%; transform: translate(-50%, -46%); pointer-events: none; }
+.hero .obj { position: absolute; z-index: 0; width: min(46vw, 470px); left: 50%; top: 50%; transform: translate(-50%, -46%); pointer-events: none; }
 .hero .obj video { width: 100%; aspect-ratio: 1; object-fit: cover; }
 .hero .meta { position: absolute; z-index: 3; top: 22px; left: 0; right: 0; }
 .hero .sub { position: absolute; z-index: 3; bottom: 26px; left: 50%; transform: translateX(-50%); width: min(520px, 86%); font-size: 13px; color: var(--grey); }
 
 /* pill rows */
-.rows { display: flex; flex-direction: column; gap: 10px; margin-top: 44px; }
+.rows { display: flex; flex-direction: column; gap: 10px; margin-top: 30px; }
 .row { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; border: 1px solid var(--line); border-radius: 14px; padding: 14px 20px; font-size: clamp(22px, 2.6vw, 34px); letter-spacing: -.02em; transition: border-color .2s; }
 .row:hover { border-color: #55555a; }
 .row .r { color: var(--dim); }
 .row sup { font-size: 14px; color: var(--grey); margin-right: 8px; vertical-align: super; }
 
 /* centred statements */
-.say { max-width: 760px; margin: 150px auto 0; text-align: center; font-size: clamp(22px, 2.5vw, 30px); line-height: 1.32; letter-spacing: -.015em; color: var(--dim); }
+.say { max-width: 760px; margin: 100px auto 0; text-align: center; font-size: clamp(22px, 2.5vw, 30px); line-height: 1.32; letter-spacing: -.015em; color: var(--dim); }
 .say .hi { color: var(--white); }
 
 /* big visual panel */
@@ -68,12 +68,12 @@ p, h1, h2, h3 { margin: 0; font-weight: 300; }
 .stage .end { font-size: 13px; color: var(--grey); margin-top: 26px; }
 
 /* section heading */
-.head { text-align: center; margin-top: 150px; }
+.head { text-align: center; margin-top: 110px; }
 .head .tiny { display: block; margin-bottom: 14px; }
 .head h2 { font-size: clamp(40px, 6vw, 76px); letter-spacing: -.04em; line-height: 1; }
 
 /* bento tiles */
-.bento { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin-top: 50px; }
+.bento { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin-top: 40px; }
 .tile { background: var(--tile); border: 1px solid var(--line); border-radius: 18px; padding: 14px; display: flex; flex-direction: column; gap: 12px; min-height: 0; }
 .tile .bar { display: flex; justify-content: space-between; font-size: 12px; color: var(--grey); }
 .tile .media { border-radius: 10px; overflow: hidden; background: #000; aspect-ratio: 1; display: grid; place-items: center; }
@@ -94,7 +94,7 @@ p, h1, h2, h3 { margin: 0; font-weight: 300; }
 .reel figcaption { font-size: 13px; color: var(--grey); margin-top: 2px; }
 
 /* wipe viewer */
-.viewer { margin-top: 50px; display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 14px; }
+.viewer { margin-top: 40px; display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 14px; }
 .panel { border: 1px solid var(--line); border-radius: 18px; padding: 14px; background: var(--tile); }
 .compare { position: relative; aspect-ratio: 1; border-radius: 10px; overflow: hidden; background: #000; --cut: 50%; user-select: none; touch-action: none; cursor: ew-resize; }
 .compare img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
@@ -120,7 +120,7 @@ td { color: var(--grey); }
 
 /* graphs: inverted so they sit on black */
 .graph img { filter: invert(1) hue-rotate(180deg) brightness(1.1); width: 100%; }
-.facts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin-top: 14px; }
+.facts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin-top: 40px; }
 .fact { border: 1px solid var(--line); border-radius: 18px; padding: 22px; }
 .fact .v { font-size: clamp(44px, 5vw, 68px); font-weight: 200; letter-spacing: -.04em; line-height: 1; }
 .fact p { font-size: 15px; color: var(--grey); margin-top: 10px; }
@@ -132,7 +132,7 @@ td { color: var(--grey); }
 .verdict .res { font-size: 14px; white-space: nowrap; }
 
 /* footer bento */
-.foot { display: grid; grid-template-columns: repeat(2, minmax(0, .5fr)) minmax(0, 1fr); gap: 14px; margin-top: 150px; }
+.foot { display: grid; grid-template-columns: repeat(2, minmax(0, .5fr)) minmax(0, 1fr); gap: 14px; margin-top: 100px; }
 .foot .tile { min-height: 150px; justify-content: space-between; }
 .foot .big { font-size: 22px; letter-spacing: -.01em; }
 .legal { display: flex; justify-content: space-between; gap: 16px; padding: 26px 0 40px; flex-wrap: wrap; }
@@ -150,7 +150,7 @@ td { color: var(--grey); }
 .step p { font-size: 15px; color: var(--grey); line-height: 1.45; }
 
 /* how a render is scored */
-.terms { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin-top: 50px; }
+.terms { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin-top: 40px; }
 .term { border: 1px solid var(--line); border-radius: 18px; padding: 22px; }
 .term h3 { font-size: 22px; letter-spacing: -.02em; margin-bottom: 8px; }
 .term p { font-size: 15px; color: var(--grey); line-height: 1.45; }
@@ -158,7 +158,7 @@ td { color: var(--grey); }
 .limits { max-width: 760px; margin: 60px auto 0; font-size: 15px; color: var(--grey); text-align: center; line-height: 1.55; }
 
 /* interactive architecture: tap a block to read it, or follow one ray through a decoder */
-.arch { margin-top: 50px; border: 1px solid var(--line); border-radius: 18px; background: var(--tile); padding: 14px; }
+.arch { margin-top: 40px; border: 1px solid var(--line); border-radius: 18px; background: var(--tile); padding: 14px; }
 .arch .choose { margin-top: 4px; }
 .arch .scroll { margin-top: 10px; }
 .arch svg { display: block; width: 100%; height: auto; touch-action: manipulation; }
@@ -185,22 +185,20 @@ td { color: var(--grey); }
 @keyframes archflow { to { stroke-dashoffset: -32; } }
 
 /* citation web: every reference, how it connects to the others and to this work */
-.web { margin-top: 50px; display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); gap: 14px; }
+.web { margin-top: 30px; display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); gap: 14px; }
 .web .canvas { position: relative; border: 1px solid var(--line); border-radius: 18px; background: var(--tile); overflow: hidden; }
 .web svg { display: block; width: 100%; height: min(640px, 78vh); touch-action: none; user-select: none; }
-#webSvg { will-change: transform; }
-#webPulse { position: absolute; inset: 0; pointer-events: none; z-index: 1; will-change: transform; }
-.web .link { fill: none; stroke-width: 1.3; stroke-linecap: round; opacity: .5; transition: opacity .25s, stroke-width .25s; }
+#webPulse { position: absolute; inset: 0; pointer-events: none; z-index: 1; }
+.web .link { fill: none; stroke-width: 1.3; stroke-linecap: round; opacity: .5; }
 .web .link.mine { stroke-width: .9; stroke-dasharray: 1 5; opacity: .2; }
 .web .link.on { opacity: 1; stroke-width: 2.4; }
 .web .paper { cursor: pointer; outline: none; }
 .web .dendrite { fill: none; stroke-width: 1.1; stroke-linecap: round; opacity: .55; }
 .web .dendrite.fine { stroke-width: .8; opacity: .4; }
-.web .soma { transition: opacity .2s; }
+
 .web .nucleus { fill: #ffffff; opacity: .85; pointer-events: none; }
 .web .pulse { fill: #ffffff; pointer-events: none; }
-.web .paper text { fill: var(--grey); font-family: var(--font); font-size: 12px; font-weight: 300; pointer-events: none; transition: opacity .2s, fill .2s;
-  paint-order: stroke; stroke: #0b0b0c; stroke-width: 3px; stroke-linejoin: round; }
+.web .paper text { fill: var(--grey); font-family: var(--font); font-size: 12px; font-weight: 300; pointer-events: none; }
 .web .paper.on text, .web .paper.near text { fill: var(--white); }
 .web .paper.on .soma { stroke: #ffffff; stroke-width: 1.4; }
 .web .paper.on .dendrite { opacity: .9; }
@@ -269,14 +267,6 @@ td { color: var(--grey); }
 
 <p class="say">I asked whether a network can learn <span class="hi">how light moves inside a diamond</span>. It learned, and the sharper decoders picked the exit facet <span class="hi">more often</span>. Yet the diamonds they rendered matched the reference <span class="hi">less</span>.</p>
 
-<section class="stage">
-<div class="duo">
-<figure style="margin: 0"><video class="glass" src="media/anim/gia_analytic.mp4?v=7" autoplay muted loop playsinline aria-label="GIA brilliant rolling, exact tracer"></video><p class="lab">exact tracer</p></figure>
-<figure style="margin: 0"><video class="glass" src="media/anim/gia_deep.mp4?v=7" autoplay muted loop playsinline aria-label="GIA brilliant rolling, deep decoder"></video><p class="lab">deep decoder, the most exit-accurate network</p></figure>
-</div>
-<p class="end">Same diamond, same roll, same camera in front ↵</p>
-</section>
-
 <div class="head" id="journey"><span class="tiny">[ the journey ]</span><h2>Three attempts</h2></div>
 <div class="bento three">
 <article class="tile">
@@ -310,12 +300,6 @@ td { color: var(--grey); }
 <p class="hint">Tap or hover over any block to read what it does.</p>
 <div class="info" aria-live="polite"><div><h3 id="archTitle">The neural transport operator</h3><span class="tag" id="archTag">overview</span></div><p id="archText">The first surface is traced exactly. Inside the diamond, a network takes over. It decides whether the light escapes, through which facet, and where on that facet it leaves. The exit ray then goes back to the path tracer.</p></div>
 </div>
-<div class="steps">
-<div class="step"><span class="n">01 · traced exactly</span><h3>Light meets the diamond</h3><p>At the first surface, part of the light reflects and part bends inside. This step is cheap, so it stays exact.</p></div>
-<div class="step"><span class="n">02 · learned</span><h3>The network takes over</h3><p>From where and how the light entered, ten numbers in all, it decides whether the light escapes and through which facet.</p></div>
-<div class="step"><span class="n">03 · learned</span><h3>A decoder places the exit</h3><p>One of three decoders picks the exact point and direction on that facet, and the ray goes back to the renderer.</p></div>
-</div>
-
 <p class="say" id="decoders">All three decoders learn from the same data, but each <span class="hi">places the exit differently</span>: one spreads its bets, two commit to a single answer.</p>
 <div class="choose" role="group" aria-label="Choose the diamond for the animations">
 <button type="button" data-anim="gia" aria-pressed="true">GIA brilliant</button>
@@ -383,7 +367,6 @@ td { color: var(--grey); }
 <p class="say">Why? Training counts every exit equally, but the image only cares about <span class="hi">the bright ones</span>. A sharp exit in the wrong place costs the picture more than a blurred one.</p>
 
 <p class="say" id="failures">Where does it go wrong? On <span class="hi">long paths</span>. Every facet the light bounces off is an edge where a tiny shift sends it somewhere else, and a small, smooth network <span class="hi">blurs those jumps</span>.</p>
-<div class="panel graph" style="margin-top: 50px"><img src="media/graphs/operator_breakdown.png?v=7" alt="Exit-facet accuracy by number of facets met, exit-direction error with the true facet given, and accuracy by exit region"></div>
 <div class="facts">
 <div class="fact"><div class="v">59%</div><p>right facet when light meets two or three facets, leaving about 11° off</p></div>
 <div class="fact"><div class="v">2%</div><p>right facet when light meets sixteen or more, leaving about 44° off</p></div>
@@ -391,7 +374,6 @@ td { color: var(--grey); }
 </div>
 
 <p class="say">Is it faster? Each network call is <span class="hi">three times faster</span> than tracing the inside, but the render around it grows, so the whole image takes <span class="hi">29% longer</span>.</p>
-<div class="panel graph" style="margin-top: 50px"><img src="media/graphs/timing.png?v=7" alt="Render time split and time per ray against how many rays the network answers at once"></div>
 <div class="facts">
 <div class="fact"><div class="v">10.4 µs</div><p>per ray through the network, against 31 µs to trace it</p></div>
 <div class="fact"><div class="v">341 s</div><p>for a neural render, against 264 s for the exact tracer</p></div>
@@ -882,12 +864,7 @@ td { color: var(--grey); }
   function colourOf(p) { return p.id === 0 ? '#ffffff' : groups[p.group].colour; }
   var linkLayer = el('g', {}, svg), nodeLayer = el('g', {}, svg);
   var linkEls = links.map(function (l, k) {
-    var grad = el('linearGradient', { id: 'axonGrad' + k, gradientUnits: 'userSpaceOnUse' }, defs);
-    el('stop', { offset: '0%', 'stop-color': colourOf(byId[l[0]]) }, grad);
-    el('stop', { offset: '100%', 'stop-color': colourOf(byId[l[1]]) }, grad);
-    var path = el('path', { id: 'axon' + k, class: 'link' + (l[3] ? ' mine' : ''), stroke: 'url(#axonGrad' + k + ')' }, linkLayer);
-    path.grad = grad;
-    return path;
+    return el('path', { id: 'axon' + k, class: 'link' + (l[3] ? ' mine' : ''), stroke: colourOf(byId[l[l[0] === 0 ? 1 : 0]]) }, linkLayer);
   });
   var nodeEls = {};
   papers.forEach(function (p) {
@@ -908,7 +885,7 @@ td { color: var(--grey); }
     }
     el('path', { class: 'dendrite', stroke: colour, d: main }, g);
     el('path', { class: 'dendrite fine', stroke: colour, d: fine }, g);
-    el('circle', { class: 'halo', r: p.id === 0 ? 30 : 16, fill: 'url(#halo-' + (p.id === 0 ? 'me' : p.group) + ')' }, g);
+    el('circle', { class: 'halo', r: p.id === 0 ? 24 : 13, fill: colour, opacity: .12 }, g);
     el('circle', { class: 'soma', r: p.id === 0 ? 14 : 7.5, fill: 'url(#soma-' + (p.id === 0 ? 'me' : p.group) + ')' }, g);
     el('circle', { class: 'nucleus', r: p.id === 0 ? 4 : 2.2 }, g);
     var t = el('text', { x: p.id === 0 ? 30 : 18, y: 4 }, g);
@@ -959,8 +936,7 @@ td { color: var(--grey); }
       var bend = ((k*37) % 11 - 5)/5*(l[3] ? .12 : .22);
       var mx = (a.x + b.x)/2 - (b.y - a.y)*bend, my = (a.y + b.y)/2 + (b.x - a.x)*bend;
       linkEls[k].setAttribute('d', 'M' + a.x + ' ' + a.y + ' Q' + mx + ' ' + my + ' ' + b.x + ' ' + b.y);
-      var gr = linkEls[k].grad;
-      gr.setAttribute('x1', a.x); gr.setAttribute('y1', a.y); gr.setAttribute('x2', b.x); gr.setAttribute('y2', b.y);
+
     });
     papers.forEach(function (p) { nodeEls[p.id].setAttribute('transform', 'translate(' + p.x + ',' + p.y + ')'); });
   }
@@ -1029,7 +1005,8 @@ td { color: var(--grey); }
     if (reduced) return;
     function burst() {
       if (document.hidden || !webSeen) return;
-      if (current === 0) {
+      if (current === 0) { return; }
+      if (false) {
         var own = [];
         links.forEach(function (l, k) { if (!l[3]) own.push(k); });
         fire(own[Math.floor(Math.random()*own.length)], Math.random() < .5);
@@ -1038,7 +1015,7 @@ td { color: var(--grey); }
       }
     }
     burst();
-    pulseTimer = setInterval(burst, current === 0 ? 1400 : 1600);
+
   }
   function select(id) {
     current = id;
