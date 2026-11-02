@@ -157,6 +157,71 @@ td { color: var(--grey); }
 
 .limits { max-width: 760px; margin: 60px auto 0; font-size: 15px; color: var(--grey); text-align: center; line-height: 1.55; }
 
+/* interactive architecture: tap a block to read it, or follow one ray through a decoder */
+.arch { margin-top: 50px; border: 1px solid var(--line); border-radius: 18px; background: var(--tile); padding: 14px; }
+.arch .choose { margin-top: 4px; }
+.arch .scroll { margin-top: 10px; }
+.arch svg { display: block; width: 100%; height: auto; touch-action: manipulation; }
+.arch .node rect { fill: #111113; stroke: #3a3a3e; stroke-width: 1.2; transition: stroke .2s, fill .2s, opacity .2s; }
+.arch .node text { fill: var(--white); font-family: var(--font); font-weight: 300; transition: opacity .2s; pointer-events: none; }
+.arch .node .sub { fill: var(--grey); font-size: 13px; }
+.arch .node .lab { font-size: 17px; }
+.arch .node .chip { fill: #1b1b1e; stroke: #4a4a4f; }
+.arch .node .chiptext { font-size: 14px; fill: var(--white); }
+.arch .node { cursor: pointer; outline: none; }
+.arch .node:hover rect.box, .arch .node:focus-visible rect.box { stroke: #8c8c90; }
+.arch .node.on rect.box { stroke: var(--white); fill: #19191c; }
+.arch .edge { fill: none; stroke: #3a3a3e; stroke-width: 1.4; transition: stroke .2s, opacity .2s; }
+.arch .edge.back { stroke-dasharray: 4 5; }
+.arch .edge.on { stroke: var(--white); }
+.arch .edge.flow { stroke-dasharray: 7 9; animation: archflow 1.1s linear infinite; }
+.arch.dim .node:not(.on) { opacity: .35; }
+.arch.dim .edge:not(.on) { opacity: .25; }
+.arch .info { display: grid; grid-template-columns: minmax(0, .9fr) minmax(0, 2fr); gap: 20px; border-top: 1px solid var(--line); margin-top: 12px; padding: 18px 8px 6px; min-height: 120px; }
+.arch .info h3 { font-size: 26px; letter-spacing: -.02em; }
+.arch .info .tag { font-size: 12px; color: var(--grey); display: block; margin-top: 6px; }
+.arch .info p { font-size: 15px; color: var(--grey); line-height: 1.5; }
+.arch .hint { font-size: 12px; color: var(--grey); text-align: center; margin-top: 6px; }
+@keyframes archflow { to { stroke-dashoffset: -32; } }
+
+/* citation web: every reference, how it connects to the others and to this work */
+.web { margin-top: 50px; display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); gap: 14px; }
+.web .canvas { position: relative; border: 1px solid var(--line); border-radius: 18px; background: var(--tile); overflow: hidden; }
+.web svg { display: block; width: 100%; height: min(640px, 78vh); touch-action: none; user-select: none; }
+.web .link { stroke: #303034; stroke-width: 1; transition: stroke .2s, opacity .2s; }
+.web .link.mine { stroke: #232326; stroke-dasharray: 2 4; }
+.web .link.on { stroke: var(--white); opacity: 1; }
+.web .paper { cursor: pointer; outline: none; }
+.web .paper circle { stroke: #000; stroke-width: 2; transition: r .2s, opacity .2s; }
+.web .paper text { fill: var(--grey); font-family: var(--font); font-size: 12px; font-weight: 300; pointer-events: none; transition: opacity .2s, fill .2s; }
+.web .paper.on text, .web .paper.near text { fill: var(--white); }
+.web .paper.on circle { stroke: var(--white); stroke-width: 2.5; }
+.web .paper:focus-visible circle { stroke: var(--white); }
+.web.dim .paper:not(.on):not(.near) { opacity: .25; }
+.web.dim .link:not(.on) { opacity: .15; }
+.web .side { border: 1px solid var(--line); border-radius: 18px; background: var(--tile); padding: 22px; display: flex; flex-direction: column; gap: 14px; max-height: min(640px, 78vh); overflow-y: auto; }
+.web .side .num { font-size: 13px; color: var(--grey); }
+.web .side h3 { font-size: 24px; letter-spacing: -.02em; line-height: 1.2; }
+.web .side .who { font-size: 13px; color: var(--grey); }
+.web .side h4 { font-size: 12px; color: var(--grey); font-weight: 300; margin: 6px 0 4px; letter-spacing: .02em; text-transform: uppercase; }
+.web .side p { font-size: 15px; color: var(--grey); line-height: 1.5; margin: 0; }
+.web .side p.use { color: var(--white); }
+.web .side ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.web .side li button { width: 100%; text-align: left; font: 300 14px var(--font); color: var(--grey); background: transparent; border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; cursor: pointer; line-height: 1.4; }
+.web .side li button:hover, .web .side li button:focus-visible { border-color: #55555a; color: var(--white); }
+.web .side li b { color: var(--white); font-weight: 400; }
+.legend { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-top: 30px; }
+.legend button { font: 300 13px var(--font); color: var(--grey); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 8px 14px; min-height: 40px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; }
+.legend button i { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+.legend button[aria-pressed="true"] { color: var(--white); border-color: var(--white); }
+@media (max-width: 860px) {
+  .arch .info { grid-template-columns: minmax(0, 1fr); gap: 8px; }
+  .web { grid-template-columns: minmax(0, 1fr); }
+  .web svg { height: 460px; }
+  .web .side { max-height: none; }
+}
+@media (prefers-reduced-motion: reduce) { .arch .edge.flow { animation: none; } }
+
 @media (max-width: 860px) {
   .bento.three, .steps, .terms { grid-template-columns: minmax(0, 1fr); }
   .bento, .viewer, .foot { grid-template-columns: minmax(0, 1fr); }
@@ -175,7 +240,7 @@ td { color: var(--grey); }
 <header class="top">
 <a class="tiny" href="#top"><span class="hi">G. Mohlakola</span> · honours research 2026</a>
 <nav aria-label="Sections">
-<a href="#journey">Journey</a><a href="#how">How it works</a><a href="#decoders">Decoders</a><a href="#compare">Compare</a><a href="#failures">Failures</a><a href="#verdict">Verdict</a>
+<a href="#journey">Journey</a><a href="#how">How it works</a><a href="#decoders">Decoders</a><a href="#compare">Compare</a><a href="#failures">Failures</a><a href="#verdict">Verdict</a><a href="#papers">Papers</a>
 </nav>
 </header>
 
@@ -225,7 +290,16 @@ td { color: var(--grey); }
 </div>
 
 <div class="head" id="how"><span class="tiny">[ the method ]</span><h2>How it works</h2></div>
-<div class="figure"><img src="media/graphs/architecture.png?v=7" alt="The neural transport operator: camera rays meet the first surface, the entry state passes through a shared encoder to the escape and facet heads, and one of three decoders places the exit ray"></div>
+<div class="arch" id="arch">
+<div class="choose" role="group" aria-label="Follow one ray through a decoder">
+<button type="button" data-route="stochastic" aria-pressed="false">Follow a ray · stochastic</button>
+<button type="button" data-route="clone" aria-pressed="false">Follow a ray · clone</button>
+<button type="button" data-route="deep" aria-pressed="false">Follow a ray · deep</button>
+</div>
+<div class="scroll"><svg id="archSvg" viewBox="0 0 1260 540" role="group" aria-label="The neural transport operator. Each block can be selected to read what it does."></svg></div>
+<p class="hint">Tap or hover over any block to read what it does.</p>
+<div class="info" aria-live="polite"><div><h3 id="archTitle">The neural transport operator</h3><span class="tag" id="archTag">overview</span></div><p id="archText">The first surface is traced exactly. Inside the diamond, a network takes over. It decides whether the light escapes, through which facet, and where on that facet it leaves. The exit ray then goes back to the path tracer.</p></div>
+</div>
 <div class="steps">
 <div class="step"><span class="n">01 · traced exactly</span><h3>Light meets the diamond</h3><p>At the first surface, part of the light reflects and part bends inside. This step is cheap, so it stays exact.</p></div>
 <div class="step"><span class="n">02 · learned</span><h3>The network takes over</h3><p>From where and how the light entered, ten numbers in all, it decides whether the light escapes and through which facet.</p></div>
@@ -327,6 +401,15 @@ td { color: var(--grey); }
 <p class="limits">Limits: one lighting rig, simplified diamond meshes, and image scores from one front view of each diamond. A check across all 60 frames of each animation is next.</p>
 <p class="say">After that, I would train with a loss that weights each exit by <span class="hi">the light it carries</span>, the way the image does.</p>
 
+<div class="head" id="papers"><span class="tiny">[ 26 references ]</span><h2>How the papers connect</h2></div>
+<p class="say" style="margin-top: 40px">No paper here renders a diamond with a network. Each one gave me <span class="hi">a piece</span>: a model to start from, a tool to build with, or a way to measure what I built.</p>
+<div class="legend" id="webLegend" role="group" aria-label="Highlight one group of papers"></div>
+<div class="web" id="web">
+<div class="canvas"><svg id="webSvg" role="group" aria-label="A web of the 26 references. Select a paper to read what it does and how it connects."></svg></div>
+<aside class="side" id="webSide" aria-live="polite"></aside>
+</div>
+<p class="hint tiny" style="text-align: center; margin-top: 10px">Tap a paper to read it, drag to move it, and tap a link in the panel to jump along the web.</p>
+
 <div class="foot">
 <a class="tile" href="https://github.com/Sally-Mohlakola/Neural_Diamond"><span class="tiny">↱ code</span><span class="big">↳ GitHub</span></a>
 <a class="tile" href="#compare"><span class="tiny">↱ try it</span><span class="big">↳ Compare renders</span></a>
@@ -417,6 +500,526 @@ td { color: var(--grey); }
   if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
     document.querySelectorAll('video').forEach(function (v) { v.removeAttribute('autoplay'); v.pause(); v.controls = true; });
   }
+})();
+</script>
+<script>
+/* interactive architecture: a wide layout for desktops, and a tall one that reads top to bottom on phones */
+(function () {
+  var NS = 'http://www.w3.org/2000/svg';
+  var svg = document.getElementById('archSvg');
+  if (!svg) return;
+  var box = document.getElementById('arch');
+  var colours = { stochastic: 'var(--stoch)', clone: 'var(--clone)', deep: 'var(--deep)' };
+  var info = {
+    camera:  { lab: 'Camera rays', sub: 'the path tracer', tag: 'traced exactly',
+      text: 'The path tracer sends rays from the studio camera into the scene. The floor, the lights and every reflection off the outside of the stone are rendered the usual way. Nothing here is learned.' },
+    surface: { lab: 'First surface', sub: 'traced exactly', tag: 'traced exactly',
+      text: 'Where a ray meets the diamond, the Fresnel equations split it. Part reflects off the surface and part bends inside. This step is cheap, so it stays exact.' },
+    entry:   { lab: 'Entry state x', sub: 'ten numbers', tag: 'the network’s input', chips: true,
+      text: 'The refracted ray is described by ten numbers. Its position p, its direction d inside the stone, the normal n of the facet it entered, and its wavelength λ. Position matters most. Without it, the operator loses 38–49% of its accuracy, while wavelength barely matters.' },
+    encoder: { lab: 'Shared encoder', sub: '2 × 64 SiLU', tag: 'learned',
+      text: 'Two layers of 64 units, with SiLU activations, turn the entry state into features that every head reads. It is small on purpose, so one call stays fast.' },
+    escape:  { lab: 'Escape head', sub: 'sigmoid · sθ', tag: 'learned',
+      text: 'A sigmoid gives the chance that the light leaves the stone at all. Light that never escapes is modelled on its own, instead of being forced through an exit.' },
+    facet:   { lab: 'Facet head', sub: 'softmax · πθ', tag: 'learned',
+      text: 'A softmax over every triangle of the mesh picks the exit facet. On the GIA brilliant it is right for 36–39% of test paths. It is right for 59% of short routes, but only 2% of routes that meet sixteen facets or more.' },
+    embed:   { lab: 'Facet embedding', sub: '16 numbers', tag: 'learned',
+      text: 'The chosen facet becomes sixteen learned numbers, so the decoder knows which facet it is placing the light on.' },
+    trunk:   { lab: 'Own trunk', sub: 'deep decoder only', tag: 'learned', colour: 'deep',
+      text: 'The deep decoder reads the entry state through a second encoder. It has the same layout as the shared one, but its own weights.' },
+    stochastic: { lab: 'Stochastic', sub: '4 Gaussians', tag: 'decoder · spreads its bets', colour: 'stochastic',
+      text: 'A mixture of four Gaussians spreads its bets over several possible exits. The image blurs, yet it agrees best with the reference under Pearson pixel correlation, on every cut.' },
+    clone:   { lab: 'Clone (baseline)', sub: '1 hidden layer', tag: 'decoder · commits', colour: 'clone',
+      text: 'One hidden layer regresses a single exit by copying the traced one, which is behavioural cloning. It commits to one answer, so its flashes are sharp but often in the wrong place.' },
+    deep:    { lab: 'Deep', sub: '3 hidden layers', tag: 'decoder · commits', colour: 'deep',
+      text: 'A clone with three hidden layers and its own encoder, trained by the exit loss alone. It is the most exit-accurate decoder and the best under LPIPS, yet still not the best under Pearson correlation.' },
+    exit:    { lab: 'Exit ray', sub: 'to the tracer', tag: 'back to the path tracer',
+      text: 'Two numbers place the exit inside the chosen facet, as weights on its corners, so it always lands on that facet. The other two lean the direction away from the facet’s normal, so the light always leaves. The ray then goes back to the path tracer.' }
+  };
+  var walk = {
+    stochastic: 'The ray is traced to the first surface and becomes ten numbers. The encoder reads them, the escape head decides whether the light leaves, and the facet head picks the facet. The stochastic decoder then spreads the exit over four Gaussians and samples one. Its light lands near the right place, but blurred.',
+    clone: 'The ray is traced to the first surface and becomes ten numbers. The encoder reads them, the escape head decides whether the light leaves, and the facet head picks the facet. The clone then places one exit, copied from what it saw in training. The flash is sharp, but often in the wrong place.',
+    deep: 'The ray is traced to the first surface and becomes ten numbers. The facet head picks the facet as before, but the deep decoder reads the entry state again, through its own trunk. Its three layers place one sharp exit. It picks facets most accurately, yet its image still agrees less than the blurred one.'
+  };
+  var layouts = {
+    wide: { view: '0 10 1400 480', label: [700, 482], nodes: {
+      camera: [20, 185, 135, 90], surface: [180, 185, 145, 90], entry: [350, 165, 165, 130], encoder: [545, 185, 145, 90],
+      escape: [725, 25, 155, 75], facet: [725, 190, 155, 80], embed: [910, 190, 155, 80], trunk: [910, 345, 155, 70],
+      stochastic: [1100, 75, 150, 75], clone: [1100, 192, 150, 75], deep: [1100, 310, 150, 75], exit: [1285, 165, 105, 130] },
+      paths: {
+        'escape-exit': 'M880 62 C1150 28 1337 28 1337 161',
+        'entry-trunk': 'M432 295 C432 382 700 380 906 380',
+        'exit-camera': 'M1337 297 C1337 468 87 468 87 279' } },
+    tall: { view: '0 0 460 960', label: [230, 948], nodes: {
+      camera: [120, 15, 220, 70], surface: [120, 115, 220, 70], entry: [120, 215, 220, 125], encoder: [120, 370, 220, 70],
+      facet: [45, 475, 170, 70], escape: [245, 475, 170, 70], embed: [45, 580, 170, 70], trunk: [245, 580, 170, 70],
+      stochastic: [40, 690, 115, 70], clone: [165, 690, 120, 70], deep: [295, 690, 120, 70], exit: [120, 805, 220, 80] },
+      paths: {
+        'escape-exit': 'M415 510 C452 510 452 845 344 845',
+        'entry-trunk': 'M340 278 C440 278 440 560 330 576',
+        'exit-camera': 'M120 845 C2 845 2 50 116 50' } }
+  };
+  var edges = ['camera-surface', 'surface-entry', 'entry-encoder', 'encoder-escape', 'encoder-facet', 'facet-embed',
+               'embed-stochastic', 'embed-clone', 'embed-deep', 'entry-trunk', 'trunk-deep',
+               'escape-exit', 'stochastic-exit', 'clone-exit', 'deep-exit', 'exit-camera'];
+  var base = ['camera-surface', 'surface-entry', 'entry-encoder', 'encoder-escape', 'encoder-facet', 'facet-embed',
+              'escape-exit', 'exit-camera'];
+  var routes = {
+    stochastic: base.concat(['embed-stochastic', 'stochastic-exit']),
+    clone: base.concat(['embed-clone', 'clone-exit']),
+    deep: base.concat(['embed-deep', 'entry-trunk', 'trunk-deep', 'deep-exit'])
+  };
+  function el(name, attrs, parent) {
+    var e = document.createElementNS(NS, name);
+    for (var k in attrs) e.setAttribute(k, attrs[k]);
+    if (parent) parent.appendChild(e);
+    return e;
+  }
+  var mode = null, nodeEls = {}, edgeEls = {}, pinned = false, state = null;
+  var buttons = box.querySelectorAll('[data-route]');
+
+  function build(m) {
+    mode = m;
+    var L = layouts[m];
+    while (svg.firstChild) svg.removeChild(svg.firstChild);
+    nodeEls = {}; edgeEls = {};
+    svg.setAttribute('viewBox', L.view);
+    var defs = el('defs', {}, svg);
+    var marker = el('marker', { id: 'archArrow', viewBox: '0 0 10 10', refX: 9, refY: 5, markerWidth: 7, markerHeight: 7, orient: 'auto-start-reverse' }, defs);
+    el('path', { d: 'M0 1 L9 5 L0 9 z', fill: '#6a6a70' }, marker);
+    var R = {};
+    Object.keys(L.nodes).forEach(function (id) { var r = L.nodes[id]; R[id] = { x: r[0], y: r[1], w: r[2], h: r[3] }; });
+    var layer = el('g', {}, svg);
+    edges.forEach(function (key) {
+      var ends = key.split('-'), a = R[ends[0]], b = R[ends[1]], d = L.paths[key];
+      if (!d && m === 'wide') {
+        var p = [a.x + a.w, a.y + a.h/2], q = [b.x, b.y + b.h/2], mx = (p[0] + q[0])/2;
+        d = 'M' + p[0] + ' ' + p[1] + ' C' + mx + ' ' + p[1] + ' ' + mx + ' ' + q[1] + ' ' + (q[0] - 2) + ' ' + q[1];
+      } else if (!d) {
+        var s = [a.x + a.w/2, a.y + a.h], t = [b.x + b.w/2, b.y], my = (s[1] + t[1])/2;
+        d = 'M' + s[0] + ' ' + s[1] + ' C' + s[0] + ' ' + my + ' ' + t[0] + ' ' + my + ' ' + t[0] + ' ' + (t[1] - 2);
+      }
+      edgeEls[key] = el('path', { d: d, class: 'edge' + (key === 'exit-camera' ? ' back' : ''), 'marker-end': 'url(#archArrow)' }, layer);
+    });
+    var note = el('text', { x: L.label[0], y: L.label[1], 'text-anchor': 'middle', fill: '#5d5d61', 'font-size': 13, 'font-family': 'Hanken Grotesk, sans-serif' }, svg);
+    note.textContent = 'dashed: the exit ray returns to the path tracer';
+    Object.keys(R).forEach(function (id) {
+      var n = R[id], d = info[id];
+      var g = el('g', { class: 'node', tabindex: 0, role: 'button', 'aria-label': d.lab + ', ' + d.sub }, svg);
+      var rect = el('rect', { class: 'box', x: n.x, y: n.y, width: n.w, height: n.h, rx: 12 }, g);
+      if (d.colour) rect.setAttribute('style', 'stroke: ' + colours[d.colour]);
+      var cx = n.x + n.w/2;
+      var t = el('text', { class: 'lab', x: cx, y: n.y + (d.chips ? 32 : n.h/2 - 4), 'text-anchor': 'middle' }, g);
+      t.textContent = (m === 'tall' && id === 'clone') ? 'Clone' : d.lab;
+      if (d.colour) t.setAttribute('style', 'fill: ' + colours[d.colour]);
+      var s = el('text', { class: 'sub', x: cx, y: n.y + (d.chips ? 54 : n.h/2 + 18), 'text-anchor': 'middle' }, g);
+      s.textContent = (m === 'tall' && id === 'clone') ? 'baseline' : d.sub;
+      if (d.chips) {
+        var x0 = n.x + (n.w - 122)/2;
+        ['p', 'd', 'n', 'λ'].forEach(function (c, i) {
+          var bx = x0 + i*32;
+          el('rect', { class: 'chip', x: bx, y: n.y + 72, width: 26, height: 30, rx: 6 }, g);
+          var ct = el('text', { class: 'chiptext', x: bx + 13, y: n.y + 92, 'text-anchor': 'middle' }, g);
+          ct.textContent = c;
+          if (c !== 'λ') ct.setAttribute('font-weight', '500');
+        });
+      }
+      nodeEls[id] = g;
+      g.addEventListener('click', function () { select(id); });
+      g.addEventListener('mouseenter', function () { if (!pinned) show(id); });
+      g.addEventListener('keydown', function (ev) { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); select(id); } });
+    });
+    if (state && state[0] === 'node') show(state[1]);
+    if (state && state[0] === 'route') follow(state[1]);
+  }
+  function clear() {
+    Object.keys(nodeEls).forEach(function (k) { nodeEls[k].classList.remove('on'); });
+    Object.keys(edgeEls).forEach(function (k) { edgeEls[k].classList.remove('on', 'flow'); });
+    box.classList.remove('dim');
+  }
+  function write(title, tag, text) {
+    document.getElementById('archTitle').textContent = title;
+    document.getElementById('archTag').textContent = tag;
+    document.getElementById('archText').textContent = text;
+  }
+  var overview = ['The neural transport operator', 'overview', 'The first surface is traced exactly. Inside the diamond, a network takes over. It decides whether the light escapes, through which facet, and where on that facet it leaves. The exit ray then goes back to the path tracer.'];
+  function show(id) {
+    clear();
+    box.classList.add('dim');
+    nodeEls[id].classList.add('on');
+    Object.keys(edgeEls).forEach(function (k) {
+      var ends = k.split('-');
+      if (ends[0] === id || ends[1] === id) {
+        edgeEls[k].classList.add('on');
+        nodeEls[ends[0]].classList.add('on');
+        nodeEls[ends[1]].classList.add('on');
+      }
+    });
+    write(info[id].lab, info[id].tag, info[id].text);
+  }
+  function select(id) {
+    pinned = true; state = ['node', id];
+    buttons.forEach(function (b) { b.setAttribute('aria-pressed', 'false'); });
+    show(id);
+  }
+  function follow(name) {
+    clear();
+    box.classList.add('dim');
+    routes[name].forEach(function (k) {
+      edgeEls[k].classList.add('on', 'flow');
+      k.split('-').forEach(function (id) { nodeEls[id].classList.add('on'); });
+    });
+    write('One ray, through the ' + (name === 'clone' ? 'clone' : name + ' decoder'), info[name].tag, walk[name]);
+  }
+  buttons.forEach(function (b) {
+    b.addEventListener('click', function () {
+      var again = b.getAttribute('aria-pressed') === 'true';
+      buttons.forEach(function (o) { o.setAttribute('aria-pressed', 'false'); });
+      if (again) { pinned = false; state = null; clear(); write.apply(null, overview); return; }
+      b.setAttribute('aria-pressed', 'true');
+      pinned = true; state = ['route', b.dataset.route];
+      follow(b.dataset.route);
+    });
+  });
+  svg.addEventListener('mouseleave', function () {
+    if (!pinned) { clear(); write.apply(null, overview); }
+  });
+  function fit() {
+    var want = box.getBoundingClientRect().width < 700 ? 'tall' : 'wide';
+    if (want !== mode) build(want);
+  }
+  fit();
+  window.addEventListener('resize', fit);
+})();
+
+/* citation web */
+(function () {
+  var NS = 'http://www.w3.org/2000/svg';
+  var svg = document.getElementById('webSvg');
+  if (!svg) return;
+  var groups = {
+    start:     { name: 'Where I started',          colour: '#f2f2f2' },
+    appearance:{ name: 'Neural appearance',        colour: '#9db0ff' },
+    transport: { name: 'Learned light transport',  colour: '#7fd1c1' },
+    rendering: { name: 'Rendering foundations',    colour: '#b8b8be' },
+    gems:      { name: 'Rendering gemstones',      colour: '#f0c27e' },
+    limits:    { name: 'Limits of small networks', colour: '#ff9bb0' },
+    tools:     { name: 'What I built with',        colour: '#c9a7ff' },
+    measure:   { name: 'How I measured',           colour: '#a9d98b' }
+  };
+  var papers = [
+    { id: 0, n: '', short: 'This work', group: 'me', who: 'Mohlakola, Ingram and Ranchod, 2026', title: 'An exploration of neural transport operators for diamond rendering',
+      what: 'A network that replaces the light transport inside a diamond. It predicts whether light escapes, through which facet, and where on that facet it leaves.',
+      use: 'Tap any paper to see what it does, how I used it, and how it connects to the others.' },
+    { id: 1, n: 1, short: 'Soh & Montazeri', group: 'start', who: 'Soh and Montazeri, 2024', title: 'Neural appearance model for cloth rendering',
+      what: 'Puts the light that scatters inside cloth fibres into two small networks, trained from a radiance distribution map.',
+      use: 'My starting point. The map works for cloth, where hundreds of fibres sit inside one pixel. On a diamond it renders flat, which is why I moved to a transport operator.' },
+    { id: 2, n: 2, short: 'Kajiya', group: 'rendering', who: 'Kajiya, 1986', title: 'The rendering equation',
+      what: 'Writes all of light transport as one integral equation.',
+      use: 'Every renderer in this project, exact or neural, estimates this equation.' },
+    { id: 3, n: 3, short: 'PBRT', group: 'rendering', who: 'Pharr, Jakob and Humphreys, 2023', title: 'Physically Based Rendering: From Theory to Implementation',
+      what: 'The standard book on physically based rendering, from the theory to working code.',
+      use: 'My reference for Monte Carlo noise, and why two exact renders never match pixel for pixel.' },
+    { id: 4, n: 4, short: 'Zeltner et al.', group: 'appearance', who: 'Zeltner et al., 2024', title: 'Real-time neural appearance models',
+      what: 'Layered materials learned by small networks that run inside a real-time renderer.',
+      use: 'It shows that a small network can run at render time. Its light stays near the surface, while mine travels through the stone.' },
+    { id: 5, n: 5, short: 'NeuMIP', group: 'appearance', who: 'Kuznetsov et al., 2021', title: 'NeuMIP: Multi-resolution neural materials',
+      what: 'Neural materials stored at several resolutions, so they can be filtered like a texture.',
+      use: 'Another surface material. It helped me see what neural appearance leaves out, the inside of an object.' },
+    { id: 6, n: 6, short: 'Neural BRDF', group: 'appearance', who: 'Sztrajman et al., 2021', title: 'Neural BRDF representation and importance sampling',
+      what: 'A network that stores how a surface reflects light, and can also be sampled efficiently.',
+      use: 'The simplest kind of neural appearance, light reflecting at a single point.' },
+    { id: 7, n: 7, short: 'Deep scattering', group: 'transport', who: 'Kallweit et al., 2017', title: 'Deep scattering: Rendering atmospheric clouds with radiance-predicting neural networks',
+      what: 'Replaces the many scattering events inside a cloud with a network that predicts the radiance.',
+      use: 'The closest idea to mine, learned transport inside a volume. Clouds scatter smoothly. A diamond does not.' },
+    { id: 8, n: 8, short: 'Vicini et al.', group: 'transport', who: 'Vicini, Koltun and Jakob, 2019', title: 'A learned shape-adaptive subsurface scattering model',
+      what: 'Learns where light leaves a translucent object, given where it enters, with a conditional variational autoencoder.',
+      use: 'Very close in spirit, an entry-to-exit model. Its materials are diffuse, so the exits it learns are smooth.' },
+    { id: 9, n: 9, short: 'Radiance caching', group: 'transport', who: 'Müller et al., 2021', title: 'Real-time neural radiance caching for path tracing',
+      what: 'Trains a small network while rendering, so a path can stop after a few bounces and read the rest from the network.',
+      use: 'It shortens paths but still traces them. My operator replaces the inside of the stone instead.' },
+    { id: 10, n: 10, short: 'Importance sampling', group: 'transport', who: 'Müller et al., 2019', title: 'Neural importance sampling',
+      what: 'Learns where to send each new ray, which lowers noise for the same number of samples.',
+      use: 'It guides paths rather than replacing them. Together with radiance caching, it marks what learned path tracing already does.' },
+    { id: 11, n: 11, short: 'Rendering diamonds', group: 'gems', who: 'Sun, Fracchia and Drew, 2000', title: 'Rendering diamonds',
+      what: 'Renders diamonds with Fresnel reflection, absorption and dispersion.',
+      use: 'It sets out what an exact diamond renderer must model. Fire comes from dispersion.' },
+    { id: 12, n: 12, short: 'Guy & Soler', group: 'gems', who: 'Guy and Soler, 2004', title: 'Graphics gems revisited: Fast and physically-based rendering of gemstones',
+      what: 'Renders gemstones in real time by tracing a bounded number of internal reflections.',
+      use: 'The idea behind my truncation baseline. Stopping the exact trace after 16 reflections beat my operator on both cost and quality.' },
+    { id: 13, n: 13, short: 'Spectral bias', group: 'limits', who: 'Rahaman et al., 2019', title: 'On the spectral bias of neural networks',
+      what: 'Shows that neural networks learn smooth functions first, and sharp detail last.',
+      use: 'My best explanation for where the operator fails. A long route’s exit jumps with its entry, and a small network smooths those jumps away.' },
+    { id: 14, n: 14, short: 'Fourier features', group: 'limits', who: 'Tancik et al., 2020', title: 'Fourier features let networks learn high frequency functions in low dimensional domains',
+      what: 'Feeds a network sines and cosines of its input, so a small network can learn sharp detail.',
+      use: 'A remedy I did not try. It is the first thing I would test next.' },
+    { id: 15, n: 15, short: 'Instant NGP', group: 'limits', who: 'Müller et al., 2022', title: 'Instant neural graphics primitives with a multiresolution hash encoding',
+      what: 'A hash encoding at many resolutions that lets tiny networks learn sharp detail quickly.',
+      use: 'The second remedy for spectral bias, also left for future work.' },
+    { id: 16, n: 16, short: 'Mixture density nets', group: 'tools', who: 'Bishop, 1994', title: 'Mixture density networks',
+      what: 'A network that predicts a whole distribution, as a weighted mix of Gaussians, instead of one answer.',
+      use: 'My stochastic decoder is one. Its four Gaussians let it spread its bets over several exits.' },
+    { id: 17, n: 17, short: 'LEAN mapping', group: 'tools', who: 'Olano and Baker, 2010', title: 'LEAN mapping',
+      what: 'Keeps specular highlights when a normal map is averaged, by filtering its mean and variance.',
+      use: 'It inspired my second attempt. I gave each radiance-map bin back its spread. The diamond sparkled, but in random places.' },
+    { id: 18, n: 18, short: 'Mitsuba 3', group: 'rendering', who: 'Jakob et al., 2022', title: 'Mitsuba 3 renderer',
+      what: 'A research renderer with spectral and differentiable variants.',
+      use: 'My exact reference and every render in this project run on it.' },
+    { id: 19, n: 19, short: 'SiLU', group: 'tools', who: 'Elfwing, Uchibe and Doya, 2018', title: 'Sigmoid-weighted linear units for neural network function approximation in reinforcement learning',
+      what: 'Introduces the sigmoid-weighted linear unit, a smooth activation function.',
+      use: 'The activation in every layer of my encoder.' },
+    { id: 20, n: 20, short: 'ALVINN', group: 'tools', who: 'Pomerleau, 1989', title: 'ALVINN: An autonomous land vehicle in a neural network',
+      what: 'An early network that learned to drive by copying a human driver, which is behavioural cloning.',
+      use: 'My clone decoder learns the same way. It copies the traced exit directly.' },
+    { id: 21, n: 21, short: 'Adam', group: 'tools', who: 'Kingma and Ba, 2015', title: 'Adam: A method for stochastic optimization',
+      what: 'An optimiser that adapts its step size for every weight.',
+      use: 'It trains every decoder in this study.' },
+    { id: 22, n: 22, short: 'Spearman', group: 'measure', who: 'Spearman, 1904', title: 'The proof and measurement of association between two things',
+      what: 'Corrects a correlation for the noise in both of its measurements, which is disattenuation.',
+      use: 'It let me check that render noise does not explain the gap between decoders. It does not.' },
+    { id: 23, n: 23, short: 'FLIP', group: 'measure', who: 'Andersson et al., 2020', title: 'FLIP: A difference evaluator for alternating images',
+      what: 'Scores the difference a viewer would notice when two images are flipped back and forth.',
+      use: 'One of my perceptual metrics. It barely separated the decoders.' },
+    { id: 24, n: 24, short: 'LPIPS', group: 'measure', who: 'Zhang et al., 2018', title: 'The unreasonable effectiveness of deep features as a perceptual metric',
+      what: 'Compares images through the features of a trained network, which tracks human judgement well.',
+      use: 'The metric that reversed my ranking. It rewards the sharper decoders that Pearson correlation penalises.' },
+    { id: 25, n: 25, short: 'Bootstrap', group: 'measure', who: 'Efron and Tibshirani, 1993', title: 'An Introduction to the Bootstrap',
+      what: 'Estimates uncertainty by resampling the data many times.',
+      use: 'How I put a 95% interval on each seed-matched difference between decoders.' },
+    { id: 26, n: 26, short: 'Block bootstrap', group: 'measure', who: 'Künsch, 1989', title: 'The jackknife and the bootstrap for general stationary observations',
+      what: 'Extends the bootstrap to data whose values are correlated, by resampling blocks.',
+      use: 'My samples are not independent, so I resample blocks rather than single values.' }
+  ];
+  var links = [
+    [1, 4, 'Both put appearance into small networks that run while rendering.'],
+    [4, 5, 'Both store a surface’s appearance in a network.'],
+    [5, 6, 'Neural materials, from a whole layered surface down to a single reflection.'],
+    [1, 7, 'Both learn light that scatters many times inside a medium.'],
+    [7, 8, 'Learned transport inside a volume. In both, the medium scatters smoothly.'],
+    [7, 9, 'Thomas Müller worked on both.'],
+    [9, 10, 'Two ways to learn inside a path tracer, shortening paths or guiding them.'],
+    [9, 15, 'Instant NGP shows its hash encoding on radiance caching too.'],
+    [2, 3, 'The equation, and the book that turns it into a renderer.'],
+    [3, 18, 'Wenzel Jakob co-wrote the book and leads Mitsuba.'],
+    [8, 18, 'Both come from Wenzel Jakob’s group.'],
+    [11, 12, 'Both render gemstones, one exactly and one with a capped trace.'],
+    [13, 14, 'Fourier features are one answer to spectral bias.'],
+    [13, 15, 'Hash encodings are another.'],
+    [14, 15, 'Two encodings made for sharp detail, my next step.'],
+    [16, 20, 'Two ways to predict an exit, a spread of Gaussians or one copied answer.'],
+    [17, 1, 'I added LEAN’s spread to the cloth model’s radiance map.'],
+    [19, 21, 'Both shape how my networks learn.'],
+    [22, 25, 'Both test whether a gap between decoders is real.'],
+    [25, 26, 'Künsch extends the bootstrap to correlated data.'],
+    [23, 24, 'Both judge images the way a viewer would, and disagree with pixel correlation.'],
+    [2, 7, 'Deep scattering learns one piece of the rendering equation.'],
+    [12, 18, 'My truncated trace, like theirs, is the exact tracer stopped early.']
+  ];
+  papers.forEach(function (p) { links.push([0, p.id, p.use, true]); });
+  links = links.filter(function (l) { return !(l[0] === 0 && l[1] === 0); });
+
+  function el(name, attrs, parent) {
+    var e = document.createElementNS(NS, name);
+    for (var k in attrs) e.setAttribute(k, attrs[k]);
+    if (parent) parent.appendChild(e);
+    return e;
+  }
+  var W = 800, H = 640;
+  var keys = Object.keys(groups);
+  var anchors = {};
+  keys.forEach(function (g, i) {
+    var a = -Math.PI/2 + i*2*Math.PI/keys.length;
+    anchors[g] = [W/2 + Math.cos(a)*W*.36, H/2 + Math.sin(a)*H*.37];
+  });
+  papers.forEach(function (p, i) {
+    if (p.id === 0) { p.x = W/2; p.y = H/2; p.fixed = true; return; }
+    var a = anchors[p.group];
+    p.x = a[0] + Math.cos(i*2.4)*40; p.y = a[1] + Math.sin(i*2.4)*40; p.vx = 0; p.vy = 0;
+  });
+  var byId = {};
+  papers.forEach(function (p) { byId[p.id] = p; });
+  var linkLayer = el('g', {}, svg), nodeLayer = el('g', {}, svg);
+  var linkEls = links.map(function (l) {
+    return el('line', { class: 'link' + (l[3] ? ' mine' : '') }, linkLayer);
+  });
+  var nodeEls = {};
+  papers.forEach(function (p) {
+    var g = el('g', { class: 'paper', tabindex: 0, role: 'button', 'aria-label': (p.n ? '[' + p.n + '] ' : '') + p.short + ', ' + p.who }, nodeLayer);
+    var colour = p.id === 0 ? '#ffffff' : groups[p.group].colour;
+    el('circle', { r: p.id === 0 ? 16 : 9, fill: colour }, g);
+    var t = el('text', { x: p.id === 0 ? 22 : 14, y: 4 }, g);
+    t.textContent = (p.n ? p.n + ' · ' : '') + p.short;
+    if (p.id === 0) { t.setAttribute('fill', '#f2f2f2'); t.setAttribute('font-size', '14'); }
+    nodeEls[p.id] = g;
+    g.addEventListener('keydown', function (ev) { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); select(p.id); } });
+  });
+
+  function step(alpha) {
+    var i, j, a, b, dx, dy, d2, d, f;
+    for (i = 0; i < papers.length; i++) {
+      a = papers[i]; if (a.fixed) continue;
+      var anc = anchors[a.group];
+      a.vx += (anc[0] - a.x)*.012*alpha; a.vy += (anc[1] - a.y)*.012*alpha;
+      for (j = 0; j < papers.length; j++) {
+        if (i === j) continue;
+        b = papers[j]; dx = a.x - b.x; dy = a.y - b.y; d2 = dx*dx + dy*dy + .01;
+        if (d2 < 22000) { f = 900/d2*alpha; a.vx += dx*f*.06; a.vy += dy*f*.06; }
+      }
+    }
+    for (i = 0; i < papers.length; i++) {
+      for (j = i + 1; j < papers.length; j++) {
+        a = papers[i]; b = papers[j]; dx = b.x - a.x; dy = b.y - a.y;
+        if (Math.abs(dy) < 26 && Math.abs(dx) < 140) {
+          f = (26 - Math.abs(dy))*.11*alpha; var sg = dy >= 0 ? 1 : -1;
+          if (!b.fixed && !b.held) b.vy += sg*f;
+          if (!a.fixed && !a.held) a.vy -= sg*f;
+        }
+      }
+    }
+    links.forEach(function (l) {
+      if (l[3]) return;
+      a = byId[l[0]]; b = byId[l[1]]; dx = b.x - a.x; dy = b.y - a.y; d = Math.sqrt(dx*dx + dy*dy) || 1;
+      f = (d - 120)*.004*alpha;
+      if (!a.fixed && !a.held) { a.vx += dx/d*f*d*.1; a.vy += dy/d*f*d*.1; }
+      if (!b.fixed && !b.held) { b.vx -= dx/d*f*d*.1; b.vy -= dy/d*f*d*.1; }
+    });
+    papers.forEach(function (p) {
+      if (p.fixed || p.held) { p.vx = 0; p.vy = 0; return; }
+      p.vx *= .82; p.vy *= .82; p.x += p.vx; p.y += p.vy;
+      p.x = Math.max(30, Math.min(W - 120, p.x)); p.y = Math.max(24, Math.min(H - 20, p.y));
+    });
+  }
+  function draw() {
+    links.forEach(function (l, k) {
+      var a = byId[l[0]], b = byId[l[1]];
+      linkEls[k].setAttribute('x1', a.x); linkEls[k].setAttribute('y1', a.y);
+      linkEls[k].setAttribute('x2', b.x); linkEls[k].setAttribute('y2', b.y);
+    });
+    papers.forEach(function (p) { nodeEls[p.id].setAttribute('transform', 'translate(' + p.x + ',' + p.y + ')'); });
+  }
+  function resize() {
+    var r = svg.getBoundingClientRect();
+    if (!r.width) return;
+    W = Math.max(360, r.width); H = Math.max(360, r.height);
+    svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
+    keys.forEach(function (g, i) {
+      var a = -Math.PI/2 + i*2*Math.PI/keys.length;
+      anchors[g] = [W/2 + Math.cos(a)*W*.36, H/2 + Math.sin(a)*H*.37];
+    });
+    byId[0].x = W/2; byId[0].y = H/2;
+  }
+  var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var heat = 1, running = false;
+  function tick() {
+    step(heat); draw();
+    heat *= .985;
+    if (heat > .02) requestAnimationFrame(tick); else running = false;
+  }
+  function kick(h) {
+    heat = Math.max(heat, h);
+    if (reduced) { for (var i = 0; i < 300; i++) step(1); draw(); return; }
+    if (!running) { running = true; requestAnimationFrame(tick); }
+  }
+  resize();
+  if (reduced) { for (var i = 0; i < 400; i++) step(1); draw(); } else { for (var k = 0; k < 120; k++) step(1); draw(); kick(.6); }
+  window.addEventListener('resize', function () { resize(); kick(.5); });
+
+  var side = document.getElementById('webSide');
+  var current = 0;
+  function neighbours(id) {
+    var out = [];
+    links.forEach(function (l) {
+      if (l[0] === id && !(id === 0)) out.push([l[1], l[2], l[3]]);
+      else if (l[1] === id) out.push([l[0], l[2], l[3]]);
+      else if (l[0] === id && id === 0) out.push([l[1], l[2], l[3]]);
+    });
+    return out;
+  }
+  function select(id) {
+    current = id;
+    var p = byId[id], near = {};
+    var web = document.getElementById('web');
+    web.classList.toggle('dim', id !== 0);
+    Object.keys(nodeEls).forEach(function (k) { nodeEls[k].classList.remove('on', 'near'); });
+    nodeEls[id].classList.add('on');
+    links.forEach(function (l, k) {
+      var hit = (l[0] === id || l[1] === id) && !(id !== 0 && l[3] && false);
+      linkEls[k].classList.toggle('on', hit && id !== 0);
+      if (hit) { near[l[0]] = near[l[1]] = true; }
+    });
+    Object.keys(near).forEach(function (k) { if (+k !== id) nodeEls[k].classList.add('near'); });
+    var html = '';
+    if (p.n) html += '<span class="num">[' + p.n + '] · ' + groups[p.group].name + '</span>';
+    else html += '<span class="num">the centre of the web</span>';
+    html += '<h3>' + p.title + '</h3><span class="who">' + p.who + '</span>';
+    html += '<div><h4>What it does</h4><p>' + p.what + '</p></div>';
+    html += '<div><h4>' + (p.id === 0 ? 'How to read the web' : 'How I used it') + '</h4><p class="use">' + p.use + '</p></div>';
+    var ns = neighbours(id).filter(function (x) { return !(id !== 0 && x[2]); });
+    if (id === 0) ns = [];
+    if (ns.length) {
+      html += '<div><h4>Connected papers</h4><ul>';
+      ns.forEach(function (x) {
+        var q = byId[x[0]];
+        html += '<li><button type="button" data-jump="' + q.id + '"><b>' + (q.n ? '[' + q.n + '] ' : '') + q.short + '</b><br>' + x[1] + '</button></li>';
+      });
+      html += '</ul></div>';
+    }
+    if (id !== 0) html += '<div><ul><li><button type="button" data-jump="0"><b>Back to this work</b></button></li></ul></div>';
+    side.innerHTML = html;
+    side.querySelectorAll('[data-jump]').forEach(function (b) {
+      b.addEventListener('click', function () { select(+b.dataset.jump); nodeEls[+b.dataset.jump].focus({ preventScroll: true }); });
+    });
+  }
+
+  // dragging and tapping, with mouse, pen or touch
+  var held = null, moved = false, start = null;
+  function point(ev) {
+    var r = svg.getBoundingClientRect();
+    return [(ev.clientX - r.left)/r.width*W, (ev.clientY - r.top)/r.height*H];
+  }
+  papers.forEach(function (p) {
+    nodeEls[p.id].addEventListener('pointerdown', function (ev) {
+      held = p; moved = false; start = point(ev);
+      if (!p.fixed) p.held = true;
+      svg.setPointerCapture(ev.pointerId);
+      ev.preventDefault();
+    });
+  });
+  svg.addEventListener('pointermove', function (ev) {
+    if (!held) return;
+    var q = point(ev);
+    if (Math.abs(q[0] - start[0]) + Math.abs(q[1] - start[1]) > 6) moved = true;
+    if (moved && !held.fixed) { held.x = q[0]; held.y = q[1]; draw(); kick(.3); }
+  });
+  function release() {
+    if (!held) return;
+    if (!moved) select(held.id);
+    held.held = false; held = null;
+  }
+  svg.addEventListener('pointerup', release);
+  svg.addEventListener('pointercancel', release);
+
+  // legend: highlight one group
+  var legend = document.getElementById('webLegend');
+  keys.forEach(function (g) {
+    var b = document.createElement('button');
+    b.type = 'button'; b.setAttribute('aria-pressed', 'false');
+    b.innerHTML = '<i style="background:' + groups[g].colour + '"></i>' + groups[g].name;
+    b.addEventListener('click', function () {
+      var on = b.getAttribute('aria-pressed') !== 'true';
+      legend.querySelectorAll('button').forEach(function (o) { o.setAttribute('aria-pressed', 'false'); });
+      var web = document.getElementById('web');
+      Object.keys(nodeEls).forEach(function (k) { nodeEls[k].classList.remove('on', 'near'); });
+      linkEls.forEach(function (e) { e.classList.remove('on'); });
+      if (!on) { web.classList.remove('dim'); select(current); return; }
+      b.setAttribute('aria-pressed', 'true');
+      web.classList.add('dim');
+      papers.forEach(function (p) { if (p.group === g) nodeEls[p.id].classList.add('near'); });
+      links.forEach(function (l, k) { if (!l[3] && byId[l[0]].group === g && byId[l[1]].group === g) linkEls[k].classList.add('on'); });
+    });
+    legend.appendChild(b);
+  });
+  select(0);
 })();
 </script>
 </body>
