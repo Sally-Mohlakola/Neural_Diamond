@@ -15,9 +15,10 @@ from PIL import Image
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from paper_style import COLUMN, STYLE
 PAPER = STYLE
-# where the uniform and camera-orbit "where entries land" panels sit in entry_sampling_pear_3d.png
-UNIFORM_BOX = (240, 1120, 580, 1370)
-ORBIT_BOX = (1800, 1120, 2140, 1370)
+# where the uniform and camera-orbit "where entries land" panels sit in entry_sampling_pear_3d.png, cut to the
+# render panels' shape (300 by 270) so all four panels are the same size
+UNIFORM_BOX = (240, 1092, 580, 1398)
+ORBIT_BOX = (1800, 1092, 2140, 1398)
 RENDER_BOX = (30, 60, 330, 330)
 
 
@@ -78,8 +79,8 @@ def contrast_figure(sampling, camera_only, mixed, frame, output, five_runs=None,
                    for image, title, note in renders]
     with plt.rc_context(PAPER):
         columns = 2*len(renders)
-        fig = plt.figure(figsize=(COLUMN, 2.35 if len(renders) == 2 else 2.1))
-        grid = fig.add_gridspec(2, columns, height_ratios=(.74, 1) if len(renders) == 2 else (.9, 1))
+        fig = plt.figure(figsize=(COLUMN, 2.75 if len(renders) == 2 else 2.1))
+        grid = fig.add_gridspec(2, columns, height_ratios=(1, 1) if len(renders) == 2 else (.9, 1))
         half = columns//2
         panel(fig.add_subplot(grid[0, :half]), np.asarray(entries.crop(UNIFORM_BOX)), '(a) uniform, aim offset',
               '54% of entries on the pavilion')

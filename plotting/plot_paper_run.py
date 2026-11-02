@@ -78,6 +78,22 @@ def breakdown_figure(breakdown, output, minimum=20):
                       label='one triangle'),
                Patch(color='#777', alpha=.3, label='whole region')]
         ax.legend(handles=key, frameon=False, loc='upper right', handlelength=1)
+        # a small triangle counter under the key: triangles drawn as dots, and all triangles, per region
+        columns = [g[0] for g in regions]
+        counts = [('shown', [sum(r['region'] == g for r in shown) for g in regions]),
+                  ('total', [sum(r['region'] == g for r in facets) for g in regions])]
+        # every cell sits on its row's baseline, and each column is centred on one x
+        left, first, step, top, line = .5, .745, .1, .75, .065
+        ax.text(left, top, 'triangles', transform=ax.transAxes, fontsize=SIZE - 1, color='#444', va='baseline')
+        for j, (g, c) in enumerate(zip(regions, columns)):
+            ax.text(first + step*j, top, c, transform=ax.transAxes, fontsize=SIZE - 1,
+                    color=REGION_COLOURS[g], ha='center', va='baseline', fontweight='bold')
+        for i, (name, values) in enumerate(counts):
+            y = top - line*(i + 1)
+            ax.text(left, y, name, transform=ax.transAxes, fontsize=SIZE - 1, color='#444', va='baseline')
+            for j, v in enumerate(values):
+                ax.text(first + step*j, y, '%d' % v, transform=ax.transAxes, fontsize=SIZE - 1,
+                        color='#444', ha='center', va='baseline')
         for ax in axes:
             ax.tick_params(axis='x', length=0)
         fig.tight_layout(pad=.3, w_pad=1.2)
@@ -216,7 +232,7 @@ def timing_figure(renders, dense, recorded, output, seeds=None, title=None, batc
                     arrowprops=dict(arrowstyle='-', color='#888', linewidth=.6))
         ax.set(xscale='log', yscale='log', xlim=(left, right), ylim=(2, 1500),
                xlabel='rays sent to the network at once', ylabel='interior path time per ray ($\\mu$s)',
-               title='%sThe network is cheaper only in large batches' % ('' if batch_only else '(b) '))
+               title='%sThe network is cheaper only in sufficiently large batches' % ('' if batch_only else '(b) '))
         ax.xaxis.set_major_formatter(matplotlib.ticker.FuncFormatter(lambda v, _: '%d' % v))
         if batch_only:
             fig.delaxes(axes[0])
