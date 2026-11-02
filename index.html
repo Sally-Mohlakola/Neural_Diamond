@@ -182,7 +182,7 @@ td { color: var(--grey); }
 <section class="hero" id="top">
 <p class="meta tiny">[ University of the Witwatersrand · School of Computer Science and Applied Mathematics ]</p>
 <h1>Neural<br>Diamonds</h1>
-<div class="obj glass"><video src="media/anim/gia_analytic.mp4?v=6" autoplay muted loop playsinline aria-label="A GIA brilliant diamond rolling in front of the camera, rendered by the exact spectral path tracer"></video></div>
+<div class="obj glass"><video src="media/anim/gia_analytic.mp4?v=7" autoplay muted loop playsinline aria-label="A GIA brilliant diamond rolling in front of the camera, rendered by the exact spectral path tracer"></video></div>
 <p class="sub">Can a small neural network replace the light transport inside a diamond? Shown here: the exact spectral path tracer, the reference every network was measured against.</p>
 </section>
 
@@ -196,8 +196,8 @@ td { color: var(--grey); }
 
 <section class="stage">
 <div class="duo">
-<figure style="margin: 0"><video class="glass" src="media/anim/gia_analytic.mp4?v=6" autoplay muted loop playsinline aria-label="GIA brilliant rolling, exact tracer"></video><p class="lab">exact tracer</p></figure>
-<figure style="margin: 0"><video class="glass" src="media/anim/gia_deep.mp4?v=6" autoplay muted loop playsinline aria-label="GIA brilliant rolling, deep decoder"></video><p class="lab">deep decoder, the most exit-accurate network</p></figure>
+<figure style="margin: 0"><video class="glass" src="media/anim/gia_analytic.mp4?v=7" autoplay muted loop playsinline aria-label="GIA brilliant rolling, exact tracer"></video><p class="lab">exact tracer</p></figure>
+<figure style="margin: 0"><video class="glass" src="media/anim/gia_deep.mp4?v=7" autoplay muted loop playsinline aria-label="GIA brilliant rolling, deep decoder"></video><p class="lab">deep decoder, the most exit-accurate network</p></figure>
 </div>
 <p class="end">Same diamond, same roll, same camera in front ↵</p>
 </section>
@@ -206,26 +206,26 @@ td { color: var(--grey); }
 <div class="bento three">
 <article class="tile">
 <div class="bar"><span>↱ Step 1 · radiance map</span><span>Aug</span></div>
-<div class="media"><video src="media/anim/gia_rdm_exp.mp4?v=6" autoplay muted loop playsinline aria-label="Rolling diamond rendered with the radiance map: flat, blocky shading"></video></div>
+<div class="media"><video src="media/anim/gia_rdm_exp.mp4?v=7" autoplay muted loop playsinline aria-label="Rolling diamond rendered with the radiance map: flat, blocky shading"></video></div>
 <h3>The average</h3>
 <p>The cloth model's map records how light leaves for each incoming direction. In cloth, that is enough. In a diamond, rays entering different facets from the same direction share one answer, so the shading goes flat. More rays did not help: from 67 million to over a billion, the map barely changed. Aiming rays across the whole diamond, not its centre, was what filled the map.</p>
 </article>
 <article class="tile">
 <div class="bar"><span>↱ Step 2 · LEAN-inspired spread</span><span>Sep</span></div>
-<div class="media"><video src="media/anim/gia_lean.mp4?v=6" autoplay muted loop playsinline aria-label="Rolling diamond with the LEAN-inspired spread: scattered speckles"></video></div>
+<div class="media"><video src="media/anim/gia_lean.mp4?v=7" autoplay muted loop playsinline aria-label="Rolling diamond with the LEAN-inspired spread: scattered speckles"></video></div>
 <h3>The spread</h3>
 <p>Each bin stores an average, so I gave back its spread: points flash on at random, bright enough to keep the average. The sparkle returns, but in random places. Speckle, not sparkle.</p>
 </article>
 <article class="tile">
 <div class="bar"><span>↱ Step 3 · neural transport operator</span><span>Sep – Oct</span></div>
-<div class="media"><video class="glass" src="media/anim/gia_stochastic.mp4?v=6" autoplay muted loop playsinline aria-label="GIA brilliant rolling, rendered with the neural transport operator"></video></div>
+<div class="media"><video class="glass" src="media/anim/gia_stochastic.mp4?v=7" autoplay muted loop playsinline aria-label="GIA brilliant rolling, rendered with the neural transport operator"></video></div>
 <h3>The position</h3>
 <p>A network that knows where light enters, and predicts whether it escapes, through which facet, and in which direction. One call replaces the whole journey inside.</p>
 </article>
 </div>
 
 <div class="head" id="how"><span class="tiny">[ the method ]</span><h2>How it works</h2></div>
-<div class="figure"><img src="media/graphs/architecture.png?v=6" alt="The neural transport operator: camera rays meet the first surface, the entry state passes through a shared encoder to the escape and facet heads, and one of three decoders places the exit ray"></div>
+<div class="figure"><img src="media/graphs/architecture.png?v=7" alt="The neural transport operator: camera rays meet the first surface, the entry state passes through a shared encoder to the escape and facet heads, and one of three decoders places the exit ray"></div>
 <div class="steps">
 <div class="step"><span class="n">01 · traced exactly</span><h3>Light meets the diamond</h3><p>At the first surface, part of the light reflects and part bends inside. This step is cheap, so it stays exact.</p></div>
 <div class="step"><span class="n">02 · learned</span><h3>The network takes over</h3><p>From where and how the light entered, ten numbers in all, it decides whether the light escapes and through which facet.</p></div>
@@ -239,10 +239,10 @@ td { color: var(--grey); }
 <button type="button" data-anim="step" aria-pressed="false">Step</button>
 </div>
 <div class="reel">
-<figure><video class="glass" id="vAnalytic" src="media/anim/gia_analytic.mp4?v=6" autoplay muted loop playsinline aria-label="Exact reference rolling"></video><figcaption>exact tracer</figcaption></figure>
-<figure><video class="glass" id="vStochastic" src="media/anim/gia_stochastic.mp4?v=6" autoplay muted loop playsinline aria-label="Stochastic decoder rolling"></video><figcaption style="color: var(--stoch)">stochastic · spreads its bets</figcaption></figure>
-<figure><video class="glass" id="vClone" src="media/anim/gia_clone.mp4?v=6" autoplay muted loop playsinline aria-label="Clone (baseline) decoder rolling"></video><figcaption style="color: var(--clone)">clone (baseline) · commits</figcaption></figure>
-<figure><video class="glass" id="vDeep" src="media/anim/gia_deep.mp4?v=6" autoplay muted loop playsinline aria-label="Deep decoder rolling"></video><figcaption style="color: var(--deep)">deep · commits</figcaption></figure>
+<figure><video class="glass" id="vAnalytic" src="media/anim/gia_analytic.mp4?v=7" autoplay muted loop playsinline aria-label="Exact reference rolling"></video><figcaption>exact tracer</figcaption></figure>
+<figure><video class="glass" id="vStochastic" src="media/anim/gia_stochastic.mp4?v=7" autoplay muted loop playsinline aria-label="Stochastic decoder rolling"></video><figcaption style="color: var(--stoch)">stochastic · spreads its bets</figcaption></figure>
+<figure><video class="glass" id="vClone" src="media/anim/gia_clone.mp4?v=7" autoplay muted loop playsinline aria-label="Clone (baseline) decoder rolling"></video><figcaption style="color: var(--clone)">clone (baseline) · commits</figcaption></figure>
+<figure><video class="glass" id="vDeep" src="media/anim/gia_deep.mp4?v=7" autoplay muted loop playsinline aria-label="Deep decoder rolling"></video><figcaption style="color: var(--deep)">deep · commits</figcaption></figure>
 </div>
 
 <div class="head"><span class="tiny">[ the yardstick ]</span><h2>How a render is scored</h2></div>
@@ -257,8 +257,8 @@ td { color: var(--grey); }
 <div class="viewer">
 <div class="panel">
 <div class="compare" id="wipeBox">
-<img id="refImg" src="media/still/gia_reference.png?v=6" alt="Exact reference render of the GIA brilliant">
-<img class="over" id="neuralImg" src="media/still/gia_stochastic.png?v=6" alt="Neural render of the GIA brilliant">
+<img id="refImg" src="media/still/gia_reference.png?v=7" alt="Exact reference render of the GIA brilliant">
+<img class="over" id="neuralImg" src="media/still/gia_stochastic.png?v=7" alt="Neural render of the GIA brilliant">
 <div class="line" aria-hidden="true"></div>
 <span class="tag l" id="leftLabel">stochastic</span>
 <span class="tag r">reference</span>
@@ -299,7 +299,7 @@ td { color: var(--grey); }
 <p class="say">Why? Training counts every exit equally, but the image only cares about <span class="hi">the bright ones</span>. A sharp exit in the wrong place costs the picture more than a blurred one.</p>
 
 <p class="say" id="failures">Where does it go wrong? On <span class="hi">long paths</span>. Every facet the light bounces off is an edge where a tiny shift sends it somewhere else, and a small, smooth network <span class="hi">blurs those jumps</span>.</p>
-<div class="panel graph" style="margin-top: 50px"><img src="media/graphs/operator_breakdown.png?v=6" alt="Exit-facet accuracy by number of facets met, exit-direction error with the true facet given, and accuracy by exit region"></div>
+<div class="panel graph" style="margin-top: 50px"><img src="media/graphs/operator_breakdown.png?v=7" alt="Exit-facet accuracy by number of facets met, exit-direction error with the true facet given, and accuracy by exit region"></div>
 <div class="facts">
 <div class="fact"><div class="v">59%</div><p>right facet when light meets two or three facets, leaving about 11° off</p></div>
 <div class="fact"><div class="v">2%</div><p>right facet when light meets sixteen or more, leaving about 44° off</p></div>
@@ -307,7 +307,7 @@ td { color: var(--grey); }
 </div>
 
 <p class="say">Is it faster? Each network call is <span class="hi">three times faster</span> than tracing the inside, but the render around it grows, so the whole image takes <span class="hi">29% longer</span>.</p>
-<div class="panel graph" style="margin-top: 50px"><img src="media/graphs/timing.png?v=6" alt="Render time split and time per ray against how many rays the network answers at once"></div>
+<div class="panel graph" style="margin-top: 50px"><img src="media/graphs/timing.png?v=7" alt="Render time split and time per ray against how many rays the network answers at once"></div>
 <div class="facts">
 <div class="fact"><div class="v">10.4 µs</div><p>per ray through the network, against 31 µs to trace it</p></div>
 <div class="fact"><div class="v">341 s</div><p>for a neural render, against 264 s for the exact tracer</p></div>
@@ -315,7 +315,7 @@ td { color: var(--grey); }
 </div>
 
 <p class="say" id="transfer">Does it carry to a new diamond? Moved to another cut without retraining, the deep decoder <span class="hi">keeps the old diamond's routes</span>: it adds light almost everywhere and misses the bright reflections.</p>
-<div class="panel" style="margin-top: 50px; background: #fff"><img src="media/graphs/transfer_deep.png?v=6" alt="Deep decoder trained on each cut, transferred from another cut, and the transferred render minus the reference: red is added light, blue is missed light" style="width: 100%; display: block"></div>
+<div class="panel" style="margin-top: 50px; background: #fff"><img src="media/graphs/transfer_deep.png?v=7" alt="Deep decoder trained on each cut, transferred from another cut, and the transferred render minus the reference: red is added light, blue is missed light" style="width: 100%; display: block"></div>
 
 <div class="head" id="verdict"><span class="tiny">[ hypotheses ]</span><h2>The verdict</h2></div>
 <div class="rows">
@@ -338,7 +338,7 @@ td { color: var(--grey); }
 
 <script>
 (function () {
-  var V = '?v=6';
+  var V = '?v=7';
   // Seed-23 scores per cut: [correlation, contrast, energy], learned then with the true facet.
   var data = {
     gia:  { floor: '0.974', ref: '3.72', heads: {
