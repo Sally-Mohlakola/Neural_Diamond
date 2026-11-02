@@ -33,7 +33,7 @@ p, h1, h2, h3 { margin: 0; font-weight: 300; }
 .hi { color: var(--white); }
 
 /* video blending: fade each render's edges into the black page */
-.glass { mix-blend-mode: screen; }
+.hero .glass { mix-blend-mode: screen; }
 
 /* top bar */
 .top { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 16px 0; flex-wrap: wrap; }
@@ -190,11 +190,10 @@ td { color: var(--grey); }
 .web svg { display: block; width: 100%; height: min(640px, 78vh); touch-action: none; user-select: none; }
 .web .link { fill: none; stroke-width: 1.3; stroke-linecap: round; opacity: .5; transition: opacity .25s, stroke-width .25s; }
 .web .link.mine { stroke-width: .9; stroke-dasharray: 1 5; opacity: .2; }
-.web .link.on { opacity: 1; stroke-width: 2.2; filter: url(#axonGlow); }
+.web .link.on { opacity: 1; stroke-width: 2.4; }
 .web .paper { cursor: pointer; outline: none; }
 .web .dendrite { fill: none; stroke-width: 1.1; stroke-linecap: round; opacity: .55; }
 .web .dendrite.fine { stroke-width: .8; opacity: .4; }
-.web .dendrites { animation: sway 6s ease-in-out infinite alternate; }
 .web .soma { transition: opacity .2s; }
 .web .nucleus { fill: #ffffff; opacity: .85; pointer-events: none; }
 .web .pulse { fill: #ffffff; pointer-events: none; }
@@ -507,6 +506,13 @@ td { color: var(--grey); }
   });
   if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
     document.querySelectorAll('video').forEach(function (v) { v.removeAttribute('autoplay'); v.pause(); v.controls = true; });
+  } else if ('IntersectionObserver' in window) {
+    var watch = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        if (e.isIntersecting) { e.target.play().catch(function () {}); } else { e.target.pause(); }
+      });
+    }, { rootMargin: '120px' });
+    document.querySelectorAll('video').forEach(function (v) { v.removeAttribute('autoplay'); v.pause(); watch.observe(v); });
   }
 })();
 </script>
@@ -861,6 +867,13 @@ td { color: var(--grey); }
     el('stop', { offset: '38%', 'stop-color': colour, 'stop-opacity': .95 }, g);
     el('stop', { offset: '100%', 'stop-color': colour, 'stop-opacity': .2 }, g);
   }
+  function haloGradient(id, colour) {
+    var g = el('radialGradient', { id: id }, defs);
+    el('stop', { offset: '0%', 'stop-color': colour, 'stop-opacity': .45 }, g);
+    el('stop', { offset: '100%', 'stop-color': colour, 'stop-opacity': 0 }, g);
+  }
+  haloGradient('halo-me', '#ffffff');
+  Object.keys(groups).forEach(function (g) { haloGradient('halo-' + g, groups[g].colour); });
   somaGradient('soma-me', '#ffffff');
   Object.keys(groups).forEach(function (g) { somaGradient('soma-' + g, groups[g].colour); });
   function colourOf(p) { return p.id === 0 ? '#ffffff' : groups[p.group].colour; }
@@ -890,7 +903,8 @@ td { color: var(--grey); }
       var fx = Math.cos(ang + bend)*(r0 + len*.62), fy = Math.sin(ang + bend)*(r0 + len*.62);
       el('path', { class: 'dendrite fine', stroke: colour, d: 'M' + fx + ' ' + fy + ' L' + (fx + Math.cos(fa)*fl) + ' ' + (fy + Math.sin(fa)*fl) }, arbour);
     }
-    el('circle', { class: 'soma', r: p.id === 0 ? 14 : 7.5, fill: 'url(#soma-' + (p.id === 0 ? 'me' : p.group) + ')', filter: 'url(#somaGlow)' }, g);
+    el('circle', { class: 'halo', r: p.id === 0 ? 30 : 16, fill: 'url(#halo-' + (p.id === 0 ? 'me' : p.group) + ')' }, g);
+    el('circle', { class: 'soma', r: p.id === 0 ? 14 : 7.5, fill: 'url(#soma-' + (p.id === 0 ? 'me' : p.group) + ')' }, g);
     el('circle', { class: 'nucleus', r: p.id === 0 ? 4 : 2.2 }, g);
     var t = el('text', { x: p.id === 0 ? 30 : 18, y: 4 }, g);
     t.textContent = (p.n ? p.n + ' · ' : '') + p.short;
@@ -984,7 +998,7 @@ td { color: var(--grey); }
     return out;
   }
   function fire(k, fromEnd) {
-    var dot = el('circle', { class: 'pulse', r: 2.6, filter: 'url(#somaGlow)' }, pulseLayer);
+    var dot = el('circle', { class: 'pulse', r: 2.6 }, pulseLayer);
     var move = el('animateMotion', { dur: (.9 + Math.random()*.6).toFixed(2) + 's', begin: 'indefinite', fill: 'freeze',
                                      keyPoints: fromEnd ? '1;0' : '0;1', keyTimes: '0;1', calcMode: 'linear' }, dot);
     var mp = el('mpath', {}, move);
@@ -992,12 +1006,15 @@ td { color: var(--grey); }
     if (move.beginElement) move.beginElement();
     setTimeout(function () { dot.remove(); }, 1700);
   }
-  var pulseTimer = null;
+  var pulseTimer = null, webSeen = false;
+  if ('IntersectionObserver' in window) {
+    new IntersectionObserver(function (entries) { webSeen = entries[0].isIntersecting; }).observe(svg);
+  } else { webSeen = true; }
   function pulses() {
     clearInterval(pulseTimer);
     if (reduced) return;
     function burst() {
-      if (document.hidden) return;
+      if (document.hidden || !webSeen) return;
       if (current === 0) {
         var own = [];
         links.forEach(function (l, k) { if (!l[3]) own.push(k); });
@@ -1007,7 +1024,7 @@ td { color: var(--grey); }
       }
     }
     burst();
-    pulseTimer = setInterval(burst, current === 0 ? 650 : 1500);
+    pulseTimer = setInterval(burst, current === 0 ? 1400 : 1600);
   }
   function select(id) {
     current = id;
