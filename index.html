@@ -188,17 +188,25 @@ td { color: var(--grey); }
 .web { margin-top: 50px; display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); gap: 14px; }
 .web .canvas { position: relative; border: 1px solid var(--line); border-radius: 18px; background: var(--tile); overflow: hidden; }
 .web svg { display: block; width: 100%; height: min(640px, 78vh); touch-action: none; user-select: none; }
-.web .link { stroke: #303034; stroke-width: 1; transition: stroke .2s, opacity .2s; }
-.web .link.mine { stroke: #232326; stroke-dasharray: 2 4; }
-.web .link.on { stroke: var(--white); opacity: 1; }
+.web .link { fill: none; stroke-width: 1.3; stroke-linecap: round; opacity: .5; transition: opacity .25s, stroke-width .25s; }
+.web .link.mine { stroke-width: .9; stroke-dasharray: 1 5; opacity: .2; }
+.web .link.on { opacity: 1; stroke-width: 2.2; filter: url(#axonGlow); }
 .web .paper { cursor: pointer; outline: none; }
-.web .paper circle { stroke: #000; stroke-width: 2; transition: r .2s, opacity .2s; }
-.web .paper text { fill: var(--grey); font-family: var(--font); font-size: 12px; font-weight: 300; pointer-events: none; transition: opacity .2s, fill .2s; }
+.web .dendrite { fill: none; stroke-width: 1.1; stroke-linecap: round; opacity: .55; }
+.web .dendrite.fine { stroke-width: .8; opacity: .4; }
+.web .dendrites { animation: sway 6s ease-in-out infinite alternate; }
+.web .soma { transition: opacity .2s; }
+.web .nucleus { fill: #ffffff; opacity: .85; pointer-events: none; }
+.web .pulse { fill: #ffffff; pointer-events: none; }
+.web .paper text { fill: var(--grey); font-family: var(--font); font-size: 12px; font-weight: 300; pointer-events: none; transition: opacity .2s, fill .2s;
+  paint-order: stroke; stroke: #0b0b0c; stroke-width: 3px; stroke-linejoin: round; }
 .web .paper.on text, .web .paper.near text { fill: var(--white); }
-.web .paper.on circle { stroke: var(--white); stroke-width: 2.5; }
-.web .paper:focus-visible circle { stroke: var(--white); }
-.web.dim .paper:not(.on):not(.near) { opacity: .25; }
-.web.dim .link:not(.on) { opacity: .15; }
+.web .paper.on .soma { stroke: #ffffff; stroke-width: 1.4; }
+.web .paper.on .dendrite { opacity: .9; }
+.web .paper:focus-visible .soma { stroke: #ffffff; stroke-width: 1.4; }
+.web.dim .paper:not(.on):not(.near) { opacity: .22; }
+.web.dim .link:not(.on) { opacity: .06; }
+@keyframes sway { from { transform: rotate(-6deg); } to { transform: rotate(6deg); } }
 .web .side { border: 1px solid var(--line); border-radius: 18px; background: var(--tile); padding: 22px; display: flex; flex-direction: column; gap: 14px; max-height: min(640px, 78vh); overflow-y: auto; }
 .web .side .num { font-size: 13px; color: var(--grey); }
 .web .side h3 { font-size: 24px; letter-spacing: -.02em; line-height: 1.2; }
@@ -220,7 +228,7 @@ td { color: var(--grey); }
   .web svg { height: 460px; }
   .web .side { max-height: none; }
 }
-@media (prefers-reduced-motion: reduce) { .arch .edge.flow { animation: none; } }
+@media (prefers-reduced-motion: reduce) { .arch .edge.flow { animation: none; } .web .dendrites { animation: none; } }
 
 @media (max-width: 860px) {
   .bento.three, .steps, .terms { grid-template-columns: minmax(0, 1fr); }
@@ -838,16 +846,53 @@ td { color: var(--grey); }
   });
   var byId = {};
   papers.forEach(function (p) { byId[p.id] = p; });
-  var linkLayer = el('g', {}, svg), nodeLayer = el('g', {}, svg);
-  var linkEls = links.map(function (l) {
-    return el('line', { class: 'link' + (l[3] ? ' mine' : '') }, linkLayer);
+  var XLINK = 'http://www.w3.org/1999/xlink';
+  var defs = el('defs', {}, svg);
+  function glowFilter(id, blur) {
+    var f = el('filter', { id: id, x: '-100%', y: '-100%', width: '300%', height: '300%' }, defs);
+    el('feGaussianBlur', { stdDeviation: blur, result: 'b' }, f);
+    var m = el('feMerge', {}, f);
+    el('feMergeNode', { in: 'b' }, m); el('feMergeNode', { in: 'SourceGraphic' }, m);
+  }
+  glowFilter('somaGlow', 3.2); glowFilter('axonGlow', 1.6);
+  function somaGradient(id, colour) {
+    var g = el('radialGradient', { id: id, cx: '38%', cy: '36%', r: '70%' }, defs);
+    el('stop', { offset: '0%', 'stop-color': '#ffffff', 'stop-opacity': .95 }, g);
+    el('stop', { offset: '38%', 'stop-color': colour, 'stop-opacity': .95 }, g);
+    el('stop', { offset: '100%', 'stop-color': colour, 'stop-opacity': .2 }, g);
+  }
+  somaGradient('soma-me', '#ffffff');
+  Object.keys(groups).forEach(function (g) { somaGradient('soma-' + g, groups[g].colour); });
+  function colourOf(p) { return p.id === 0 ? '#ffffff' : groups[p.group].colour; }
+  var linkLayer = el('g', {}, svg), pulseLayer = el('g', {}, svg), nodeLayer = el('g', {}, svg);
+  var linkEls = links.map(function (l, k) {
+    var grad = el('linearGradient', { id: 'axonGrad' + k, gradientUnits: 'userSpaceOnUse' }, defs);
+    el('stop', { offset: '0%', 'stop-color': colourOf(byId[l[0]]) }, grad);
+    el('stop', { offset: '100%', 'stop-color': colourOf(byId[l[1]]) }, grad);
+    var path = el('path', { id: 'axon' + k, class: 'link' + (l[3] ? ' mine' : ''), stroke: 'url(#axonGrad' + k + ')' }, linkLayer);
+    path.grad = grad;
+    return path;
   });
   var nodeEls = {};
   papers.forEach(function (p) {
     var g = el('g', { class: 'paper', tabindex: 0, role: 'button', 'aria-label': (p.n ? '[' + p.n + '] ' : '') + p.short + ', ' + p.who }, nodeLayer);
     var colour = p.id === 0 ? '#ffffff' : groups[p.group].colour;
-    el('circle', { r: p.id === 0 ? 16 : 9, fill: colour }, g);
-    var t = el('text', { x: p.id === 0 ? 22 : 14, y: 4 }, g);
+    var arbour = el('g', { class: 'dendrites', style: 'animation-duration: ' + (5 + p.id % 4) + 's; animation-delay: -' + (p.id % 5) + 's' }, g);
+    var count = p.id === 0 ? 9 : 5 + p.id % 3, r0 = p.id === 0 ? 13 : 6.5;
+    for (var di = 0; di < count; di++) {
+      var ang = di/count*Math.PI*2 + p.id*.7, len = (p.id === 0 ? 24 : 12) + (p.id*7 + di*13) % 9;
+      var bend = ((p.id + di) % 5 - 2)*.2;
+      var x1 = Math.cos(ang)*r0, y1 = Math.sin(ang)*r0;
+      var x2 = Math.cos(ang + bend)*(r0 + len), y2 = Math.sin(ang + bend)*(r0 + len);
+      var qx = Math.cos(ang + bend*2.2)*(r0 + len*.55), qy = Math.sin(ang + bend*2.2)*(r0 + len*.55);
+      el('path', { class: 'dendrite', stroke: colour, d: 'M' + x1 + ' ' + y1 + ' Q' + qx + ' ' + qy + ' ' + x2 + ' ' + y2 }, arbour);
+      var fa = ang + bend + (di % 2 ? .6 : -.6), fl = len*.45;
+      var fx = Math.cos(ang + bend)*(r0 + len*.62), fy = Math.sin(ang + bend)*(r0 + len*.62);
+      el('path', { class: 'dendrite fine', stroke: colour, d: 'M' + fx + ' ' + fy + ' L' + (fx + Math.cos(fa)*fl) + ' ' + (fy + Math.sin(fa)*fl) }, arbour);
+    }
+    el('circle', { class: 'soma', r: p.id === 0 ? 14 : 7.5, fill: 'url(#soma-' + (p.id === 0 ? 'me' : p.group) + ')', filter: 'url(#somaGlow)' }, g);
+    el('circle', { class: 'nucleus', r: p.id === 0 ? 4 : 2.2 }, g);
+    var t = el('text', { x: p.id === 0 ? 30 : 18, y: 4 }, g);
     t.textContent = (p.n ? p.n + ' · ' : '') + p.short;
     if (p.id === 0) { t.setAttribute('fill', '#f2f2f2'); t.setAttribute('font-size', '14'); }
     nodeEls[p.id] = g;
@@ -892,8 +937,11 @@ td { color: var(--grey); }
   function draw() {
     links.forEach(function (l, k) {
       var a = byId[l[0]], b = byId[l[1]];
-      linkEls[k].setAttribute('x1', a.x); linkEls[k].setAttribute('y1', a.y);
-      linkEls[k].setAttribute('x2', b.x); linkEls[k].setAttribute('y2', b.y);
+      var bend = ((k*37) % 11 - 5)/5*(l[3] ? .12 : .22);
+      var mx = (a.x + b.x)/2 - (b.y - a.y)*bend, my = (a.y + b.y)/2 + (b.x - a.x)*bend;
+      linkEls[k].setAttribute('d', 'M' + a.x + ' ' + a.y + ' Q' + mx + ' ' + my + ' ' + b.x + ' ' + b.y);
+      var gr = linkEls[k].grad;
+      gr.setAttribute('x1', a.x); gr.setAttribute('y1', a.y); gr.setAttribute('x2', b.x); gr.setAttribute('y2', b.y);
     });
     papers.forEach(function (p) { nodeEls[p.id].setAttribute('transform', 'translate(' + p.x + ',' + p.y + ')'); });
   }
@@ -935,6 +983,32 @@ td { color: var(--grey); }
     });
     return out;
   }
+  function fire(k, fromEnd) {
+    var dot = el('circle', { class: 'pulse', r: 2.6, filter: 'url(#somaGlow)' }, pulseLayer);
+    var move = el('animateMotion', { dur: (.9 + Math.random()*.6).toFixed(2) + 's', begin: 'indefinite', fill: 'freeze',
+                                     keyPoints: fromEnd ? '1;0' : '0;1', keyTimes: '0;1', calcMode: 'linear' }, dot);
+    var mp = el('mpath', {}, move);
+    mp.setAttribute('href', '#axon' + k); mp.setAttributeNS(XLINK, 'xlink:href', '#axon' + k);
+    if (move.beginElement) move.beginElement();
+    setTimeout(function () { dot.remove(); }, 1700);
+  }
+  var pulseTimer = null;
+  function pulses() {
+    clearInterval(pulseTimer);
+    if (reduced) return;
+    function burst() {
+      if (document.hidden) return;
+      if (current === 0) {
+        var own = [];
+        links.forEach(function (l, k) { if (!l[3]) own.push(k); });
+        fire(own[Math.floor(Math.random()*own.length)], Math.random() < .5);
+      } else {
+        links.forEach(function (l, k) { if (l[0] === current || l[1] === current) fire(k, l[1] === current); });
+      }
+    }
+    burst();
+    pulseTimer = setInterval(burst, current === 0 ? 650 : 1500);
+  }
   function select(id) {
     current = id;
     var p = byId[id], near = {};
@@ -966,6 +1040,7 @@ td { color: var(--grey); }
     }
     if (id !== 0) html += '<div><ul><li><button type="button" data-jump="0"><b>Back to this work</b></button></li></ul></div>';
     side.innerHTML = html;
+    pulses();
     side.querySelectorAll('[data-jump]').forEach(function (b) {
       b.addEventListener('click', function () { select(+b.dataset.jump); nodeEls[+b.dataset.jump].focus({ preventScroll: true }); });
     });
