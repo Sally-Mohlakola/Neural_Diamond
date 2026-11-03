@@ -78,7 +78,6 @@ p, h1, h2, h3 { margin: 0; font-weight: 300; }
 .tile .bar { display: flex; justify-content: space-between; font-size: 12px; color: var(--grey); }
 .tile .media { border-radius: 10px; overflow: hidden; background: #000; aspect-ratio: 1; display: grid; place-items: center; }
 .tile .media img, .tile .media video { width: 100%; height: 100%; object-fit: contain; }
-.tile .media .hoverplay { cursor: pointer; }
 .tile .bar .play { color: var(--dim); }
 .tile .media.fit img { object-fit: contain; }
 .tile h3 { font-size: 26px; letter-spacing: -.02em; }
@@ -250,7 +249,7 @@ td { color: var(--grey); }
 <header class="top">
 <a class="tiny" href="#top"><span class="hi">G. Mohlakola</span> · honours research 2026</a>
 <nav aria-label="Sections">
-<a href="#journey">Journey</a><a href="#how">How it works</a><a href="#decoders">Decoders</a><a href="#compare">Compare</a><a href="#failures">Failures</a><a href="#verdict">Verdict</a><a href="#papers">Papers</a>
+<a href="#journey">Journey</a><a href="#how">How it works</a><a href="#papers">Papers</a><a href="#decoders">Decoders</a><a href="#compare">Compare</a><a href="#failures">Failures</a><a href="#verdict">Verdict</a>
 </nav>
 </header>
 
@@ -273,21 +272,21 @@ td { color: var(--grey); }
 <div class="bento three">
 <article class="tile">
 <div class="bar"><span>↱ Step 1 · radiance map</span><span>Aug</span></div>
-<div class="media"><video preload="none" class="hoverplay" poster="media/still/poster_gia_rdm_exp.jpg?v=8" src="media/anim/gia_rdm_exp.mp4?v=8" muted loop playsinline aria-label="Rolling diamond rendered with the radiance map: flat, blocky shading"></video></div>
+<div class="media"><video preload="none" src="media/anim/gia_rdm_exp.mp4?v=8" autoplay muted loop playsinline aria-label="Rolling diamond rendered with the radiance map: flat, blocky shading"></video></div>
 <h3>The average</h3>
 <p>The cloth model's map records how light leaves for each incoming direction. In cloth, that is enough. In a diamond, rays entering different facets from the same direction share one answer, so the shading goes flat. More rays did not help: from 67 million to over a billion, the map barely changed. Aiming rays across the whole diamond, not its centre, was what filled the map.</p>
 </article>
 <article class="tile">
 <div class="bar"><span>↱ Step 2 · LEAN-inspired spread</span><span>Sep</span></div>
-<div class="media"><video preload="none" class="hoverplay" poster="media/still/poster_gia_lean.jpg?v=8" src="media/anim/gia_lean.mp4?v=8" muted loop playsinline aria-label="Rolling diamond with the LEAN-inspired spread: scattered speckles"></video></div>
+<div class="media"><video preload="none" src="media/anim/gia_lean.mp4?v=8" autoplay muted loop playsinline aria-label="Rolling diamond with the LEAN-inspired spread: scattered speckles"></video></div>
 <h3>The spread</h3>
 <p>Each bin stores an average, so I gave back its spread: points flash on at random, bright enough to keep the average. The sparkle returns, but in random places. Speckle, not sparkle.</p>
 </article>
 <article class="tile">
 <div class="bar"><span>↱ Step 3 · neural transport operator</span><span>Sep – Oct</span></div>
-<div class="media"><video preload="none" class="hoverplay" poster="media/still/poster_gia_stochastic.jpg?v=8" src="media/anim/gia_stochastic.mp4?v=8" muted loop playsinline aria-label="GIA brilliant rolling, rendered with the neural transport operator"></video></div>
+<div class="media"><video preload="none" src="media/anim/gia_deep_truefacet.mp4?v=8" autoplay muted loop playsinline aria-label="GIA brilliant rolling, rendered by the deep decoder given the true exit facet"></video></div>
 <h3>The position</h3>
-<p>A network that knows where light enters, and predicts whether it escapes, through which facet, and in which direction. One call replaces the whole journey inside.</p>
+<p>A network that knows where light enters, and predicts whether it escapes, through which facet, and in which direction. One call replaces the whole journey inside. Shown here is its best case, the deep decoder given the true exit facet.</p>
 </article>
 </div>
 
@@ -302,13 +301,22 @@ td { color: var(--grey); }
 <p class="hint">Tap or hover over any block to read what it does.</p>
 <div class="info" aria-live="polite"><div><h3 id="archTitle">The neural transport operator</h3><span class="tag" id="archTag">overview</span></div><p id="archText">The first surface is traced exactly. Inside the diamond, a network takes over. It decides whether the light escapes, through which facet, and where on that facet it leaves. The exit ray then goes back to the path tracer.</p></div>
 </div>
+<div class="head" id="papers"><span class="tiny">[ 26 references ]</span><h2>How the papers connect</h2></div>
+<p class="say" style="margin-top: 40px">No paper here renders a diamond with a network. Each one gave me <span class="hi">a piece</span>: a model to start from, a tool to build with, or a way to measure what I built.</p>
+<div class="legend" id="webLegend" role="group" aria-label="Highlight one group of papers"></div>
+<div class="web" id="web">
+<div class="canvas"><svg id="webPulse" aria-hidden="true"></svg><svg id="webSvg" role="group" aria-label="A web of the 26 references. Select a paper to read what it does and how it connects."></svg></div>
+<aside class="side" id="webSide" aria-live="polite"></aside>
+</div>
+<p class="hint tiny" style="text-align: center; margin-top: 10px">Tap a paper to read it, drag to move it, and tap a link in the panel to jump along the web.</p>
+
 <p class="say" id="decoders">All three decoders learn from the same data, but each <span class="hi">places the exit differently</span>: one spreads its bets, two commit to a single answer.</p>
 <div class="choose" role="group" aria-label="Choose the diamond for the animations">
 <button type="button" data-anim="gia" aria-pressed="true">GIA brilliant</button>
 <button type="button" data-anim="pear" aria-pressed="false">Pear brilliant</button>
 <button type="button" data-anim="step" aria-pressed="false">Step</button>
 </div>
-<figure class="reel"><video preload="none" id="vReel" src="media/anim/gia_reel.mp4?v=8" autoplay muted loop playsinline aria-label="The GIA brilliant rolling, rendered by the exact tracer and by the stochastic, clone and deep decoders, side by side"></video><div class="caps"><span>exact tracer</span><span style="color: var(--stoch)">stochastic · spreads its bets</span><span style="color: var(--clone)">clone (baseline) · commits</span><span style="color: var(--deep)">deep · commits</span></div></figure>
+<figure class="reel"><video preload="none" id="vReel" src="media/anim/gia_reel.mp4?v=8" autoplay muted loop playsinline aria-label="The GIA brilliant rolling, rendered by the exact tracer and by the deep, clone and stochastic decoders, side by side"></video><div class="caps"><span>exact tracer</span><span style="color: var(--deep)">deep · commits</span><span style="color: var(--clone)">clone (baseline) · commits</span><span style="color: var(--stoch)">stochastic · spreads its bets</span></div></figure>
 
 <div class="head"><span class="tiny">[ the yardstick ]</span><h2>How a render is scored</h2></div>
 <div class="terms">
@@ -389,15 +397,6 @@ td { color: var(--grey); }
 
 <p class="limits">Limits: one lighting rig, simplified diamond meshes, and image scores from one front view of each diamond. A check across all 60 frames of each animation is next.</p>
 <p class="say">After that, I would train with a loss that weights each exit by <span class="hi">the light it carries</span>, the way the image does.</p>
-
-<div class="head" id="papers"><span class="tiny">[ 26 references ]</span><h2>How the papers connect</h2></div>
-<p class="say" style="margin-top: 40px">No paper here renders a diamond with a network. Each one gave me <span class="hi">a piece</span>: a model to start from, a tool to build with, or a way to measure what I built.</p>
-<div class="legend" id="webLegend" role="group" aria-label="Highlight one group of papers"></div>
-<div class="web" id="web">
-<div class="canvas"><svg id="webPulse" aria-hidden="true"></svg><svg id="webSvg" role="group" aria-label="A web of the 26 references. Select a paper to read what it does and how it connects."></svg></div>
-<aside class="side" id="webSide" aria-live="polite"></aside>
-</div>
-<p class="hint tiny" style="text-align: center; margin-top: 10px">Tap a paper to read it, drag to move it, and tap a link in the panel to jump along the web.</p>
 
 <div class="foot">
 <a class="tile" href="https://github.com/Sally-Mohlakola/Neural_Diamond"><span class="tiny">↱ code</span><span class="big">↳ GitHub</span></a>
@@ -481,20 +480,8 @@ td { color: var(--grey); }
       press(b.parentNode, b);
       var v = document.getElementById('vReel');
       v.src = 'media/anim/' + b.dataset.anim + '_reel.mp4' + V;
-      v.setAttribute('aria-label', 'The ' + cutLabel[b.dataset.anim] + ' rolling, rendered by the exact tracer and by the stochastic, clone and deep decoders, side by side');
+      v.setAttribute('aria-label', 'The ' + cutLabel[b.dataset.anim] + ' rolling, rendered by the exact tracer and by the deep, clone and stochastic decoders, side by side');
       v.play().catch(function () {});
-    });
-  });
-  // journey tiles play one at a time: on hover with a mouse, or on a tap
-  document.querySelectorAll('video.hoverplay').forEach(function (v) {
-    var tile = v.closest('.tile');
-    function stopOthers() {
-      document.querySelectorAll('video.hoverplay').forEach(function (o) { if (o !== v) o.pause(); });
-    }
-    tile.addEventListener('mouseenter', function () { stopOthers(); v.play().catch(function () {}); });
-    tile.addEventListener('mouseleave', function () { v.pause(); });
-    v.addEventListener('click', function () {
-      if (v.paused) { stopOthers(); v.play().catch(function () {}); } else { v.pause(); }
     });
   });
   if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
