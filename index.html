@@ -234,6 +234,29 @@ td { color: var(--grey); }
 }
 @media (prefers-reduced-motion: reduce) { .arch .edge.flow { animation: none; } .web .dendrites { animation: none; } }
 
+/* brushed metal: the outline rows, the scoring cards and the verdict rows, with text pressed into the plate */
+.row, .term, .verdict {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, .42), rgba(255, 255, 255, .30) 55%, rgba(255, 255, 255, .38)),
+    url(media/metal.jpg?v=8) center / cover;
+  border: 1px solid #a9a9ae;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .75), inset 0 -1px 0 rgba(0, 0, 0, .35), 0 8px 22px rgba(0, 0, 0, .45);
+  color: #1b1b1d;
+}
+.rows .row, .rows .row .r, .rows .row span, .terms .term h3, .rows .verdict .name, .rows .verdict .res {
+  color: #1b1b1d;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, .7), 0 -1px 0 rgba(0, 0, 0, .28);
+}
+.rows .row .r { color: #3a3a3e; }
+.terms .term p, .rows .verdict .what {
+  color: #161618; font-weight: 400;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, .4);
+}
+.terms .term h3, .rows .verdict .name, .rows .row span { font-weight: 400; }
+.rows .verdict .res { font-weight: 500; }
+.row:hover { border-color: #d6d6da; }
+.term:hover { border-color: #d6d6da; box-shadow: inset 0 1px 0 rgba(255, 255, 255, .75), inset 0 -1px 0 rgba(0, 0, 0, .35), 0 16px 32px rgba(0, 0, 0, .6); }
+
 @media (max-width: 860px) {
   .bento.three, .steps, .terms { grid-template-columns: minmax(0, 1fr); }
   .bento, .viewer, .foot { grid-template-columns: minmax(0, 1fr); }
