@@ -659,7 +659,7 @@ td { color: var(--grey); }
       var pc = plastic[id], name = pc === NAVY ? 'navy' : pc === SLATE ? 'slate' : pc === TEAL ? 'teal' : 'salmon';
       var T = 7;
       el('rect', { class: 'shadow', x: n.x + 3, y: n.y + T + 5, width: n.w, height: n.h, rx: 12 }, g);
-      el('rect', { class: 'side', x: n.x, y: n.y + T, width: n.w, height: n.h, rx: 12, fill: SIDE[name] }, g);
+      el('rect', { class: 'side', x: n.x, y: n.y + T, width: n.w, height: n.h, rx: 12, fill: SIDE[name], stroke: pc[2], 'stroke-opacity': .45, 'stroke-width': 1.2 }, g);
       el('rect', { class: 'sideline', x: n.x + 6, y: n.y + n.h + T - 2, width: n.w - 12, height: 1, fill: '#ffffff', opacity: .12 }, g);
       var rect = el('rect', { class: 'box', x: n.x, y: n.y, width: n.w, height: n.h, rx: 12, fill: 'url(#pvc-' + name + ')', stroke: pc[2] }, g);
       el('rect', { class: 'face', x: n.x, y: n.y, width: n.w, height: n.h, rx: 12, fill: 'url(#pvc-satin)' }, g);
@@ -712,25 +712,31 @@ td { color: var(--grey); }
     // the shading runs from the pressed point to the opposite side
     grad.setAttribute('x1', (.5 + .5*ux).toFixed(3)); grad.setAttribute('y1', (.5 + .5*uy).toFixed(3));
     grad.setAttribute('x2', (.5 - .5*ux).toFixed(3)); grad.setAttribute('y2', (.5 - .5*uy).toFixed(3));
+    var side = g.querySelector('.side'), sideline = g.querySelector('.sideline'), shade = g.querySelector('.shadow');
     var t0 = performance.now();
     if (g.rocking) cancelAnimationFrame(g.rocking);
     function frame(now) {
       var t = (now - t0)/1000, decay = Math.exp(-t*5), swing = Math.cos(t*17)*decay*reach;
       // swing > 0: the pressed side sinks away; swing < 0: it rocks back up
-      var sx = 1 - .055*Math.abs(ux)*Math.abs(swing), sy = 1 - .07*Math.abs(uy)*Math.abs(swing);
-      var dx = 2.4*ux*swing, dy = 2.4*uy*swing + 2.2*decay*Math.max(0, Math.cos(t*17));
-      var twist = 2.2*ux*uy*swing;
+      var sx = 1 - .11*Math.abs(ux)*Math.abs(swing), sy = 1 - .14*Math.abs(uy)*Math.abs(swing);
+      var dx = 4*ux*swing, dy = 4*uy*swing + 3*decay*Math.max(0, Math.cos(t*17));
+      var twist = 3.6*ux*uy*swing;
+      // the wall on the side tipping away comes into view, and the shadow slides the other way
+      var wall = 'translate(' + (9*ux*swing).toFixed(2) + ' ' + (9*uy*swing).toFixed(2) + ')';
+      side.setAttribute('transform', wall); sideline.setAttribute('transform', wall);
+      shade.setAttribute('transform', 'translate(' + (-5*ux*swing).toFixed(2) + ' ' + (-5*uy*swing).toFixed(2) + ')');
       g.setAttribute('transform', 'translate(' + (cx + dx).toFixed(2) + ' ' + (cy + dy).toFixed(2) + ') rotate(' + twist.toFixed(3) +
                      ') scale(' + sx.toFixed(4) + ' ' + sy.toFixed(4) + ') translate(' + (-cx) + ' ' + (-cy) + ')');
       // the sinking side darkens and the rising side catches the light
       var s = Math.abs(swing), down = swing > 0;
       stops[0].setAttribute('stop-color', down ? '#000000' : '#ffffff');
-      stops[0].setAttribute('stop-opacity', (down ? .38 : .2)*s);
+      stops[0].setAttribute('stop-opacity', (down ? .5 : .26)*s);
       stops[1].setAttribute('stop-color', down ? '#ffffff' : '#000000');
-      stops[1].setAttribute('stop-opacity', (down ? .2 : .3)*s);
+      stops[1].setAttribute('stop-opacity', (down ? .26 : .4)*s);
       if (t < 1) g.rocking = requestAnimationFrame(frame);
       else {
         g.removeAttribute('transform'); g.rocking = 0;
+        side.removeAttribute('transform'); sideline.removeAttribute('transform'); shade.removeAttribute('transform');
         stops[0].setAttribute('stop-opacity', 0); stops[1].setAttribute('stop-opacity', 0);
       }
     }
