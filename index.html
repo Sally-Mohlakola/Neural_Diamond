@@ -164,6 +164,8 @@ td { color: var(--grey); }
 /* interactive architecture: tap a block to read it, or follow one ray through a decoder */
 .arch { margin-top: 40px; border: 1px solid var(--line); border-radius: 18px; background: var(--tile); padding: 14px; }
 .arch .choose { margin-top: 4px; }
+.arch .choose .reset { border-style: dashed; color: var(--white); }
+.arch .choose .reset[hidden] { display: none; }
 .arch .scroll { margin-top: 10px; }
 .arch svg { display: block; width: 100%; height: auto; touch-action: manipulation; }
 .arch .node .box { stroke-width: 1.2; }
@@ -325,9 +327,10 @@ td { color: var(--grey); }
 <button type="button" data-route="stochastic" aria-pressed="false">Follow a ray · stochastic</button>
 <button type="button" data-route="clone" aria-pressed="false">Follow a ray · clone</button>
 <button type="button" data-route="deep" aria-pressed="false">Follow a ray · deep</button>
+<button type="button" class="reset" id="archReset" hidden>↺ Reset</button>
 </div>
 <div class="scroll"><svg id="archSvg" viewBox="0 0 1260 540" role="group" aria-label="The neural transport operator. Each block can be selected to read what it does."></svg></div>
-<p class="hint">Tap or hover over any block to read what it does.</p>
+<p class="hint">Tap or hover over any block to read what it does. Tap empty space, or Reset, to start again.</p>
 <div class="info" aria-live="polite"><div><h3 id="archTitle">The neural transport operator</h3><span class="tag" id="archTag">overview</span></div><p id="archText">The first surface is traced exactly. Inside the diamond, a network takes over. It decides whether the light escapes, through which facet, and where on that facet it leaves. The exit ray then goes back to the path tracer.</p></div>
 </div>
 <div class="head" id="papers"><span class="tiny">[ 26 references ]</span><h2>How the papers connect</h2></div>
@@ -767,8 +770,18 @@ td { color: var(--grey); }
     });
     write(info[id].lab, info[id].tag, info[id].text);
   }
+  var resetBtn = document.getElementById('archReset');
+  function reset() {
+    pinned = false; state = null;
+    buttons.forEach(function (o) { o.setAttribute('aria-pressed', 'false'); });
+    clear(); write.apply(null, overview);
+    resetBtn.hidden = true;
+  }
+  resetBtn.addEventListener('click', reset);
+  // a tap on empty space in the diagram also resets it
+  svg.addEventListener('click', function (ev) { if (pinned && !ev.target.closest('.node')) reset(); });
   function select(id) {
-    pinned = true; state = ['node', id];
+    pinned = true; state = ['node', id]; resetBtn.hidden = false;
     buttons.forEach(function (b) { b.setAttribute('aria-pressed', 'false'); });
     show(id);
   }
@@ -785,9 +798,9 @@ td { color: var(--grey); }
     b.addEventListener('click', function () {
       var again = b.getAttribute('aria-pressed') === 'true';
       buttons.forEach(function (o) { o.setAttribute('aria-pressed', 'false'); });
-      if (again) { pinned = false; state = null; clear(); write.apply(null, overview); return; }
+      if (again) { reset(); return; }
       b.setAttribute('aria-pressed', 'true');
-      pinned = true; state = ['route', b.dataset.route];
+      pinned = true; state = ['route', b.dataset.route]; resetBtn.hidden = false;
       follow(b.dataset.route);
     });
   });
