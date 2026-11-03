@@ -168,7 +168,8 @@ td { color: var(--grey); }
 .arch svg { display: block; width: 100%; height: auto; touch-action: manipulation; }
 .arch .node .box { stroke-width: 1.2; }
 .arch .node .shadow { fill: #000; opacity: .45; }
-.arch .node .gloss { pointer-events: none; }
+.arch .node .face, .arch .node .side, .arch .node .sideline { pointer-events: none; }
+.arch .node .wear { opacity: .55; }
 .arch .node text { font-family: var(--font); font-weight: 500; pointer-events: none; }
 .arch .node .sub { font-size: 13px; font-weight: 400; }
 .arch .node .lab { font-size: 17px; }
@@ -539,6 +540,7 @@ td { color: var(--grey); }
   var SLATE = ['#3d6791', '#2f5478', '#7aa0c6', '#ffffff', '#dbe6f1'];
   var TEAL = ['#1e7d74', '#166058', '#62c4b9', '#ffffff', '#f2fbfa'];
   var SALMON = ['#f7a590', '#ee8468', '#ffd2c6', '#14243a', '#16263c'];
+  var SIDE = { navy: '#132a45', slate: '#213f5e', teal: '#0d4741', salmon: '#c25f45' };
   var plastic = { camera: SLATE, surface: NAVY, entry: TEAL, encoder: TEAL, escape: NAVY, facet: NAVY, embed: NAVY,
                   trunk: TEAL, stochastic: SALMON, clone: SLATE, deep: TEAL, exit: NAVY };
   var chipColour = { p: ['#4a74ad', '#ffffff'], d: ['#ee7b5f', '#14243a'], n: ['#8a98a8', '#14243a'], '\u03bb': ['#e8b44c', '#14243a'] };
@@ -622,9 +624,17 @@ td { color: var(--grey); }
       el('stop', { offset: '0%', 'stop-color': pc[1][0] }, gr);
       el('stop', { offset: '100%', 'stop-color': pc[1][1] }, gr);
     });
-    var gloss = el('linearGradient', { id: 'pvc-gloss', x1: 0, y1: 0, x2: 0, y2: 1 }, defs);
-    el('stop', { offset: '0%', 'stop-color': '#ffffff', 'stop-opacity': .32 }, gloss);
-    el('stop', { offset: '100%', 'stop-color': '#ffffff', 'stop-opacity': 0 }, gloss);
+    var satin = el('linearGradient', { id: 'pvc-satin', x1: 0, y1: 0, x2: 1, y2: 1 }, defs);
+    el('stop', { offset: '0%', 'stop-color': '#ffffff', 'stop-opacity': .16 }, satin);
+    el('stop', { offset: '45%', 'stop-color': '#ffffff', 'stop-opacity': .04 }, satin);
+    el('stop', { offset: '100%', 'stop-color': '#000000', 'stop-opacity': .10 }, satin);
+    var rim = el('linearGradient', { id: 'pvc-rim', x1: 0, y1: 0, x2: 0, y2: 1 }, defs);
+    el('stop', { offset: '0%', 'stop-color': '#ffffff', 'stop-opacity': .55 }, rim);
+    el('stop', { offset: '18%', 'stop-color': '#ffffff', 'stop-opacity': .08 }, rim);
+    el('stop', { offset: '100%', 'stop-color': '#ffffff', 'stop-opacity': 0 }, rim);
+    var wear = el('pattern', { id: 'pvc-wear', width: 256, height: 256, patternUnits: 'userSpaceOnUse' }, defs);
+    var wi = el('image', { width: 256, height: 256 }, wear);
+    wi.setAttribute('href', 'media/wear.png?v=8');
     var marker = el('marker', { id: 'archArrow', viewBox: '0 0 10 10', refX: 9, refY: 5, markerWidth: 7, markerHeight: 7, orient: 'auto-start-reverse' }, defs);
     el('path', { d: 'M0 1 L9 5 L0 9 z', fill: '#9aa3ad' }, marker);
     var R = {};
@@ -647,9 +657,15 @@ td { color: var(--grey); }
       var n = R[id], d = info[id];
       var g = el('g', { class: 'node', tabindex: 0, role: 'button', 'aria-label': d.lab + ', ' + d.sub }, svg);
       var pc = plastic[id], name = pc === NAVY ? 'navy' : pc === SLATE ? 'slate' : pc === TEAL ? 'teal' : 'salmon';
-      el('rect', { class: 'shadow', x: n.x + 2, y: n.y + 5, width: n.w, height: n.h, rx: 12 }, g);
+      var T = 7;
+      el('rect', { class: 'shadow', x: n.x + 3, y: n.y + T + 5, width: n.w, height: n.h, rx: 12 }, g);
+      el('rect', { class: 'side', x: n.x, y: n.y + T, width: n.w, height: n.h, rx: 12, fill: SIDE[name] }, g);
+      el('rect', { class: 'sideline', x: n.x + 6, y: n.y + n.h + T - 2, width: n.w - 12, height: 1, fill: '#ffffff', opacity: .12 }, g);
       var rect = el('rect', { class: 'box', x: n.x, y: n.y, width: n.w, height: n.h, rx: 12, fill: 'url(#pvc-' + name + ')', stroke: pc[2] }, g);
-      el('rect', { class: 'gloss', x: n.x + 3, y: n.y + 3, width: n.w - 6, height: Math.min(n.h*.45, 34), rx: 9, fill: 'url(#pvc-gloss)' }, g);
+      el('rect', { class: 'face', x: n.x, y: n.y, width: n.w, height: n.h, rx: 12, fill: 'url(#pvc-satin)' }, g);
+      el('rect', { class: 'face wear', x: n.x, y: n.y, width: n.w, height: n.h, rx: 12, fill: 'url(#pvc-wear)' }, g);
+      el('rect', { class: 'face', x: n.x + 1, y: n.y + 1, width: n.w - 2, height: n.h - 2, rx: 11, fill: 'none', stroke: 'url(#pvc-rim)', 'stroke-width': 1.5 }, g);
+      g.dataset.cx = n.x + n.w/2; g.dataset.cy = n.y + n.h/2; g.dataset.hw = n.w/2; g.dataset.hh = n.h/2;
       var cx = n.x + n.w/2;
       var t = el('text', { class: 'lab', x: cx, y: n.y + (d.chips ? 32 : n.h/2 - 4), 'text-anchor': 'middle' }, g);
       t.textContent = (m === 'tall' && id === 'clone') ? 'Clone' : d.lab;
@@ -669,11 +685,32 @@ td { color: var(--grey); }
       }
       nodeEls[id] = g;
       g.addEventListener('click', function () { select(id); });
+      g.addEventListener('pointerdown', function (ev) { rock(g, ev); });
       g.addEventListener('mouseenter', function () { if (!pinned) show(id); });
       g.addEventListener('keydown', function (ev) { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); select(id); } });
     });
     if (state && state[0] === 'node') show(state[1]);
     if (state && state[0] === 'route') follow(state[1]);
+  }
+  var still = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function rock(g, ev) {
+    if (still) return;
+    var ctm = svg.getScreenCTM();
+    if (!ctm) return;
+    var pt = svg.createSVGPoint(); pt.x = ev.clientX; pt.y = ev.clientY;
+    var p = pt.matrixTransform(ctm.inverse());
+    var cx = +g.dataset.cx, cy = +g.dataset.cy;
+    var ux = Math.max(-1, Math.min(1, (p.x - cx)/+g.dataset.hw)), uy = Math.max(-1, Math.min(1, (p.y - cy)/+g.dataset.hh));
+    var t0 = performance.now();
+    if (g.rocking) cancelAnimationFrame(g.rocking);
+    function frame(now) {
+      var t = (now - t0)/1000, decay = Math.exp(-t*5.5), swing = Math.cos(t*19)*decay;
+      var tilt = 3.2*ux*swing, press = 3*decay*Math.max(0, Math.cos(t*19)), squash = 1 - .035*Math.abs(uy)*decay;
+      g.setAttribute('transform', 'translate(' + cx + ' ' + (cy + press) + ') rotate(' + tilt.toFixed(3) + ') scale(1 ' + squash.toFixed(4) + ') translate(' + (-cx) + ' ' + (-cy) + ')');
+      if (t < .9) g.rocking = requestAnimationFrame(frame);
+      else { g.removeAttribute('transform'); g.rocking = 0; }
+    }
+    g.rocking = requestAnimationFrame(frame);
   }
   function clear() {
     Object.keys(nodeEls).forEach(function (k) { nodeEls[k].classList.remove('on'); });
