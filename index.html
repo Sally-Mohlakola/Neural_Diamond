@@ -664,6 +664,11 @@ td { color: var(--grey); }
       var rect = el('rect', { class: 'box', x: n.x, y: n.y, width: n.w, height: n.h, rx: 12, fill: 'url(#pvc-' + name + ')', stroke: pc[2] }, g);
       el('rect', { class: 'face', x: n.x, y: n.y, width: n.w, height: n.h, rx: 12, fill: 'url(#pvc-satin)' }, g);
       el('rect', { class: 'face wear', x: n.x, y: n.y, width: n.w, height: n.h, rx: 12, fill: 'url(#pvc-wear)' }, g);
+      var tg = el('linearGradient', { id: 'pvc-tilt-' + id }, defs);
+      el('stop', { offset: '0%', 'stop-color': '#000000', 'stop-opacity': 0 }, tg);
+      el('stop', { offset: '100%', 'stop-color': '#ffffff', 'stop-opacity': 0 }, tg);
+      el('rect', { class: 'face tiltshade', x: n.x, y: n.y, width: n.w, height: n.h, rx: 12, fill: 'url(#pvc-tilt-' + id + ')' }, g);
+      g.dataset.id = id;
       el('rect', { class: 'face', x: n.x + 1, y: n.y + 1, width: n.w - 2, height: n.h - 2, rx: 11, fill: 'none', stroke: 'url(#pvc-rim)', 'stroke-width': 1.5 }, g);
       g.dataset.cx = n.x + n.w/2; g.dataset.cy = n.y + n.h/2; g.dataset.hw = n.w/2; g.dataset.hh = n.h/2;
       var cx = n.x + n.w/2;
@@ -700,15 +705,34 @@ td { color: var(--grey); }
     var pt = svg.createSVGPoint(); pt.x = ev.clientX; pt.y = ev.clientY;
     var p = pt.matrixTransform(ctm.inverse());
     var cx = +g.dataset.cx, cy = +g.dataset.cy;
+    // where it was pressed, from -1 to 1 on each axis: the lower left is (-1, 1)
     var ux = Math.max(-1, Math.min(1, (p.x - cx)/+g.dataset.hw)), uy = Math.max(-1, Math.min(1, (p.y - cy)/+g.dataset.hh));
+    var reach = Math.min(1, Math.sqrt(ux*ux + uy*uy)) || .35;
+    var grad = document.getElementById('pvc-tilt-' + g.dataset.id), stops = grad.getElementsByTagName('stop');
+    // the shading runs from the pressed point to the opposite side
+    grad.setAttribute('x1', (.5 + .5*ux).toFixed(3)); grad.setAttribute('y1', (.5 + .5*uy).toFixed(3));
+    grad.setAttribute('x2', (.5 - .5*ux).toFixed(3)); grad.setAttribute('y2', (.5 - .5*uy).toFixed(3));
     var t0 = performance.now();
     if (g.rocking) cancelAnimationFrame(g.rocking);
     function frame(now) {
-      var t = (now - t0)/1000, decay = Math.exp(-t*5.5), swing = Math.cos(t*19)*decay;
-      var tilt = 3.2*ux*swing, press = 3*decay*Math.max(0, Math.cos(t*19)), squash = 1 - .035*Math.abs(uy)*decay;
-      g.setAttribute('transform', 'translate(' + cx + ' ' + (cy + press) + ') rotate(' + tilt.toFixed(3) + ') scale(1 ' + squash.toFixed(4) + ') translate(' + (-cx) + ' ' + (-cy) + ')');
-      if (t < .9) g.rocking = requestAnimationFrame(frame);
-      else { g.removeAttribute('transform'); g.rocking = 0; }
+      var t = (now - t0)/1000, decay = Math.exp(-t*5), swing = Math.cos(t*17)*decay*reach;
+      // swing > 0: the pressed side sinks away; swing < 0: it rocks back up
+      var sx = 1 - .055*Math.abs(ux)*Math.abs(swing), sy = 1 - .07*Math.abs(uy)*Math.abs(swing);
+      var dx = 2.4*ux*swing, dy = 2.4*uy*swing + 2.2*decay*Math.max(0, Math.cos(t*17));
+      var twist = 2.2*ux*uy*swing;
+      g.setAttribute('transform', 'translate(' + (cx + dx).toFixed(2) + ' ' + (cy + dy).toFixed(2) + ') rotate(' + twist.toFixed(3) +
+                     ') scale(' + sx.toFixed(4) + ' ' + sy.toFixed(4) + ') translate(' + (-cx) + ' ' + (-cy) + ')');
+      // the sinking side darkens and the rising side catches the light
+      var s = Math.abs(swing), down = swing > 0;
+      stops[0].setAttribute('stop-color', down ? '#000000' : '#ffffff');
+      stops[0].setAttribute('stop-opacity', (down ? .38 : .2)*s);
+      stops[1].setAttribute('stop-color', down ? '#ffffff' : '#000000');
+      stops[1].setAttribute('stop-opacity', (down ? .2 : .3)*s);
+      if (t < 1) g.rocking = requestAnimationFrame(frame);
+      else {
+        g.removeAttribute('transform'); g.rocking = 0;
+        stops[0].setAttribute('stop-opacity', 0); stops[1].setAttribute('stop-opacity', 0);
+      }
     }
     g.rocking = requestAnimationFrame(frame);
   }
