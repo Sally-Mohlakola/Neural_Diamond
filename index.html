@@ -324,7 +324,7 @@ td { color: var(--grey); }
 .rig-view .err { opacity: 0; mix-blend-mode: normal; }
 .rig.showerr .rig-view .err { opacity: 1; }
 .rig-view .cut { position: absolute; top: 0; bottom: 0; left: var(--cut); width: 1px; margin-left: 0; background: var(--white); pointer-events: none; }
-.rig.showerr .rig-view .cut, .rig.showerr .rig-view .stamp { opacity: 0; }
+.rig.showerr .rig-view .cut, .rig.showerr .rig-view .stamp { position: absolute; top: 12px; font-size: 14px; padding: 5px 10px; border-radius: 999px; background: rgba(0, 0, 0, .6); border: 1px solid var(--line); color: var(--white); transition: opacity .3s; }
 .rig-view .cut span { position: absolute; top: 50%; left: 50%; width: 30px; height: 30px; margin: -15px 0 0 -15px; border-radius: 50%;
   background: #000 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3E%3Cpath d='M12 9l-5 6 5 6M18 9l5 6-5 6' fill='none' stroke='%23f2f2f2' stroke-width='2'/%3E%3C/svg%3E") center/100%;
   border: 2px solid var(--white); }
@@ -335,12 +335,7 @@ td { color: var(--grey); }
   background: linear-gradient(180deg, transparent, rgba(255, 255, 255, .10) 85%, rgba(255, 255, 255, .8) 100%); }
 .rig-view.scan .beam { animation: beam 1.1s cubic-bezier(.4, 0, .2, 1); }
 @keyframes beam { from { top: -80px; } to { top: 100%; } }
-.rig-view .reticle { position: absolute; inset: 14px; pointer-events: none;
-  background: linear-gradient(#8c8c90, #8c8c90) 0 0 / 18px 1px, linear-gradient(#8c8c90, #8c8c90) 0 0 / 1px 18px,
-              linear-gradient(#8c8c90, #8c8c90) 100% 0 / 18px 1px, linear-gradient(#8c8c90, #8c8c90) 100% 0 / 1px 18px,
-              linear-gradient(#8c8c90, #8c8c90) 0 100% / 18px 1px, linear-gradient(#8c8c90, #8c8c90) 0 100% / 1px 18px,
-              linear-gradient(#8c8c90, #8c8c90) 100% 100% / 18px 1px, linear-gradient(#8c8c90, #8c8c90) 100% 100% / 1px 18px;
-  background-repeat: no-repeat; opacity: .7; }
+
 .rig .slider { width: min(560px, 100%); accent-color: var(--white); margin: 0; }
 .rig-read { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; width: 100%; }
 .rig-read div { border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; display: grid; gap: 4px; }
@@ -499,14 +494,14 @@ td { color: var(--grey); }
 </div>
 <div class="rig-stage">
 <div class="rig-view" id="rigView" role="img" aria-label="Deep decoder render of the pear brilliant: trained on this cut on the left, transferred from the GIA brilliant on the right">
-<video class="cell base" id="rigBase" muted loop playsinline preload="auto" src="media/anim/transfer_gia_to_pear_own.mp4?v=9"></video>
-<video class="cell over" id="rigOver" muted loop playsinline preload="auto" src="media/anim/transfer_gia_to_pear_moved.mp4?v=9"></video>
-<video class="cell err" id="rigErrCell" muted loop playsinline preload="auto" src="media/anim/transfer_gia_to_pear_err.mp4?v=9"></video>
+<video id="rigVid" muted loop playsinline preload="auto" src="media/anim/transfer_gia_to_pear.mp4?v=10" aria-hidden="true" style="position:absolute;width:2px;height:2px;opacity:0;pointer-events:none"></video>
+<canvas class="cell base" id="rigBase" width="480" height="480"></canvas>
+<canvas class="cell over" id="rigOver" width="480" height="480"></canvas>
+<canvas class="cell err" id="rigErrCell" width="480" height="480"></canvas>
 <div class="beam" aria-hidden="true"></div>
 <div class="cut" aria-hidden="true"><span></span></div>
 <span class="stamp l" id="rigL">trained on this cut</span>
 <span class="stamp r" id="rigR">transferred · no retraining</span>
-<span class="reticle" aria-hidden="true"></span>
 </div>
 <input class="slider" id="rigWipe" type="range" min="0" max="100" value="50" aria-label="Wipe between the render trained on this cut and the transferred render">
 <div class="rig-read">
@@ -514,6 +509,7 @@ td { color: var(--grey); }
 <div><span class="tiny">trained on</span><b id="rigFrom">GIA brilliant</b></div>
 <div><span class="tiny">decoder</span><b>deep</b></div>
 <div class="key"><span class="tiny">error map</span><b><i class="add"></i>added light <i class="miss"></i>missed light</b></div>
+</div>
 </div>
 </div>
 
@@ -1474,21 +1470,26 @@ td { color: var(--grey); }
     { key: 'gia_to_pear', spec: 'pear brilliant', from: 'GIA brilliant' },
     { key: 'pear_to_step', spec: 'step cut', from: 'pear brilliant' }
   ];
-  var view = document.getElementById('rigView'), base = document.getElementById('rigBase'), over = document.getElementById('rigOver'), err = document.getElementById('rigErrCell');
-  var vids = [base, over, err], wipe = document.getElementById('rigWipe');
-  var still = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  // one video holds all three renders side by side (trained | transferred | error map), so they can never drift apart;
+  // each canvas draws its own third of every frame
+  var view = document.getElementById('rigView'), vid = document.getElementById('rigVid'), wipe = document.getElementById('rigWipe');
+  var outs = ['rigBase', 'rigOver', 'rigErrCell'].map(function (id) { return document.getElementById(id).getContext('2d'); });
+  var still = window.matchMedia('(prefers-reduced-motion: reduce)').matches, seen = false;
   function scan() { view.classList.remove('scan'); void view.offsetWidth; view.classList.add('scan'); }
-  function playAll() { if (still) return; vids.forEach(function (v) { var p = v.play(); if (p) p.catch(function () {}); }); }
-  // keep the transferred render and the error map on the same frame as the trained one
-  setInterval(function () {
-    if (base.paused) return;
-    [over, err].forEach(function (v) { if (Math.abs(v.currentTime - base.currentTime) > .04) v.currentTime = base.currentTime; });
-  }, 250);
+  function paint() {
+    if (vid.readyState < 2) return;
+    for (var i = 0; i < 3; i++) outs[i].drawImage(vid, i * 480, 0, 480, 480, 0, 0, 480, 480);
+  }
+  function loop() { paint(); if (!vid.paused) requestAnimationFrame(loop); }
+  vid.addEventListener('play', function () { requestAnimationFrame(loop); });
+  vid.addEventListener('loadeddata', paint);
+  vid.addEventListener('seeked', paint);
+  vid.addEventListener('canplay', paint);
+  paint();
+  function play() { if (still || !seen) return; var p = vid.play(); if (p) p.catch(function () {}); }
   function load(i) {
-    var k = sets[i].key;
-    base.src = 'media/anim/transfer_' + k + '_own.mp4?v=9'; over.src = 'media/anim/transfer_' + k + '_moved.mp4?v=9'; err.src = 'media/anim/transfer_' + k + '_err.mp4?v=9';
-    vids.forEach(function (v) { v.currentTime = 0; });
-    playAll();
+    vid.src = 'media/anim/transfer_' + sets[i].key + '.mp4?v=10';
+    vid.load(); play();
     document.getElementById('rigSpec').textContent = sets[i].spec; document.getElementById('rigFrom').textContent = sets[i].from;
     view.setAttribute('aria-label', 'Deep decoder render of the ' + sets[i].spec + ' rolling: trained on this cut on the left, transferred from the ' + sets[i].from + ' on the right');
     scan();
@@ -1507,10 +1508,15 @@ td { color: var(--grey); }
   view.addEventListener('pointerup', function () { view.onpointermove = null; });
   document.getElementById('rigSpec').textContent = sets[0].spec;
   // play and scan once when it first scrolls into view
-  if ('IntersectionObserver' in window) {
-    var io = new IntersectionObserver(function (es) { if (es[0].isIntersecting) { playAll(); scan(); io.disconnect(); } }, { threshold: .4 });
-    io.observe(view);
+  // play while the viewer is on screen, pause when it leaves
+  function check() {
+    var r = view.getBoundingClientRect(), on = r.bottom > innerHeight * .1 && r.top < innerHeight * .9;
+    if (on === seen) return;
+    seen = on;
+    if (on) { if (!view.dataset.scanned) { scan(); view.dataset.scanned = 1; } play(); } else vid.pause();
   }
+  addEventListener('scroll', check, { passive: true }); addEventListener('resize', check);
+  vid.addEventListener('canplay', check); check();
 })();
 </script>
 </body>
