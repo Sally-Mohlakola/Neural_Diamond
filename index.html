@@ -564,9 +564,6 @@ td { color: var(--grey); }
       case 'surface':  // the crown of a diamond: a table on top, sloping facets
         return 'M' + (x + w*.18) + ' ' + y + ' H' + (r - w*.18) + ' L' + r + ' ' + (y + h*.42) + ' L' + (r - w*.1) + ' ' + b +
                ' H' + (x + w*.1) + ' L' + x + ' ' + (y + h*.42) + ' Z';
-      case 'entry':    // a card with a folded corner: the input record
-        return 'M' + (x + c) + ' ' + y + ' H' + (r - 24) + ' L' + r + ' ' + (y + 24) + ' V' + (b - c) + ' Q' + r + ' ' + b + ' ' + (r - c) + ' ' + b +
-               ' H' + (x + c) + ' Q' + x + ' ' + b + ' ' + x + ' ' + (b - c) + ' V' + (y + c) + ' Q' + x + ' ' + y + ' ' + (x + c) + ' ' + y + ' Z';
       case 'encoder':  // a funnel: many numbers squeezed into one code
         return 'M' + x + ' ' + (y + 4) + ' L' + r + ' ' + (y + h*.16) + ' V' + (b - h*.16) + ' L' + x + ' ' + (b - 4) + ' Z';
       case 'escape':   // a decision: a pointed hexagon, yes or no
