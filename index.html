@@ -534,13 +534,67 @@ td { color: var(--grey); }
   var box = document.getElementById('arch');
   var colours = { stochastic: 'var(--stoch)', clone: 'var(--clone)', deep: 'var(--deep)' };
   // plastic per block: [top, bottom, edge, text, sub text]
-  var NAVY = ['#2a4f78', '#1d3a5c', '#5f86b0', '#ffffff', '#d4e1ee'];
-  var SLATE = ['#3d6791', '#2f5478', '#7aa0c6', '#ffffff', '#dbe6f1'];
-  var TEAL = ['#1e7d74', '#166058', '#62c4b9', '#ffffff', '#f2fbfa'];
-  var SALMON = ['#f7a590', '#ee8468', '#ffd2c6', '#14243a', '#16263c'];
-  var SIDE = { navy: '#132a45', slate: '#213f5e', teal: '#0d4741', salmon: '#c25f45' };
-  var plastic = { camera: SLATE, surface: NAVY, entry: TEAL, encoder: TEAL, escape: NAVY, facet: NAVY, embed: NAVY,
-                  trunk: TEAL, stochastic: SALMON, clone: SLATE, deep: TEAL, exit: NAVY };
+  // colour by job: grey = exact path tracing, green = network input, violet = shared network,
+  // and each decoder in the colour it has everywhere else on the page
+  var PAL = {
+    tracer: ['#5b6672', '#3e4750', '#a3afbb', '#ffffff', '#dde3e9'],
+    input:  ['#22917f', '#18695d', '#6fd6c4', '#ffffff', '#e6faf6'],
+    net:    ['#6552b5', '#47398a', '#a898f0', '#ffffff', '#e7e2ff'],
+    stoch:  ['#b4c2ff', '#8c9ff5', '#e3e8ff', '#141a3a', '#20284d'],
+    clone:  ['#f5cf92', '#e5ac5a', '#fff0d6', '#2e1d05', '#3d2a0c'],
+    deep:   ['#ffb1c1', '#f27f98', '#ffe1e8', '#3a0f19', '#4a1622']
+  };
+  var SIDE = { tracer: '#262c33', input: '#0e463e', net: '#2b2257', stoch: '#5f6fc0', clone: '#a87628', deep: '#b8506a' };
+  var group = { camera: 'tracer', surface: 'tracer', exit: 'tracer', entry: 'input',
+                encoder: 'net', escape: 'net', facet: 'net', embed: 'net',
+                stochastic: 'stoch', clone: 'clone', deep: 'deep', trunk: 'deep' };
+  // an outline for each block that hints at what it is
+  function shape(id, x, y, w, h) {
+    var r = x + w, b = y + h, mx = x + w/2, my = y + h/2, c = 12;
+    function rr(x0, y0, x1, y1, k) {
+      return 'M' + (x0 + k) + ' ' + y0 + ' H' + (x1 - k) + ' Q' + x1 + ' ' + y0 + ' ' + x1 + ' ' + (y0 + k) +
+             ' V' + (y1 - k) + ' Q' + x1 + ' ' + y1 + ' ' + (x1 - k) + ' ' + y1 + ' H' + (x0 + k) +
+             ' Q' + x0 + ' ' + y1 + ' ' + x0 + ' ' + (y1 - k) + ' V' + (y0 + k) + ' Q' + x0 + ' ' + y0 + ' ' + (x0 + k) + ' ' + y0 + ' Z';
+    }
+    switch (id) {
+      case 'camera':   // a camera body with a viewfinder hump
+        return 'M' + (x + c) + ' ' + (y + 12) + ' H' + (x + w*.3) + ' L' + (x + w*.38) + ' ' + y + ' H' + (x + w*.62) + ' L' + (x + w*.7) + ' ' + (y + 12) +
+               ' H' + (r - c) + ' Q' + r + ' ' + (y + 12) + ' ' + r + ' ' + (y + 12 + c) + ' V' + (b - c) + ' Q' + r + ' ' + b + ' ' + (r - c) + ' ' + b +
+               ' H' + (x + c) + ' Q' + x + ' ' + b + ' ' + x + ' ' + (b - c) + ' V' + (y + 12 + c) + ' Q' + x + ' ' + (y + 12) + ' ' + (x + c) + ' ' + (y + 12) + ' Z';
+      case 'surface':  // the crown of a diamond: a table on top, sloping facets
+        return 'M' + (x + w*.18) + ' ' + y + ' H' + (r - w*.18) + ' L' + r + ' ' + (y + h*.42) + ' L' + (r - w*.1) + ' ' + b +
+               ' H' + (x + w*.1) + ' L' + x + ' ' + (y + h*.42) + ' Z';
+      case 'entry':    // a card with a folded corner: the input record
+        return 'M' + (x + c) + ' ' + y + ' H' + (r - 24) + ' L' + r + ' ' + (y + 24) + ' V' + (b - c) + ' Q' + r + ' ' + b + ' ' + (r - c) + ' ' + b +
+               ' H' + (x + c) + ' Q' + x + ' ' + b + ' ' + x + ' ' + (b - c) + ' V' + (y + c) + ' Q' + x + ' ' + y + ' ' + (x + c) + ' ' + y + ' Z';
+      case 'encoder':  // a funnel: many numbers squeezed into one code
+        return 'M' + x + ' ' + (y + 4) + ' L' + r + ' ' + (y + h*.16) + ' V' + (b - h*.16) + ' L' + x + ' ' + (b - 4) + ' Z';
+      case 'escape':   // a decision: a pointed hexagon, yes or no
+        return 'M' + (x + 22) + ' ' + y + ' H' + (r - 22) + ' L' + r + ' ' + my + ' L' + (r - 22) + ' ' + b + ' H' + (x + 22) + ' L' + x + ' ' + my + ' Z';
+      case 'facet':    // a gem facet: a kite pointing to its choice
+        return 'M' + x + ' ' + (y + 8) + ' L' + (r - 26) + ' ' + y + ' L' + r + ' ' + my + ' L' + (r - 26) + ' ' + b + ' L' + x + ' ' + (b - 8) + ' Z';
+      case 'embed':    // a vector: square brackets around a row of numbers
+        return 'M' + x + ' ' + y + ' H' + (x + 18) + ' V' + (y + 8) + ' H' + (r - 18) + ' V' + y + ' H' + r + ' V' + b + ' H' + (r - 18) +
+               ' V' + (b - 8) + ' H' + (x + 18) + ' V' + b + ' H' + x + ' Z';
+      case 'trunk':    // a pipe that carries the input past the shared encoder
+        return rr(x, y, r, b, h/2);
+      case 'stochastic': // a cloud: it spreads its bets
+        var bumps = 'M' + (x + 18) + ' ' + b + ' Q' + x + ' ' + b + ' ' + x + ' ' + (my + 8) + ' Q' + x + ' ' + (y + h*.3) + ' ' + (x + w*.18) + ' ' + (y + h*.28) +
+                    ' Q' + (x + w*.24) + ' ' + y + ' ' + (x + w*.45) + ' ' + (y + 4) + ' Q' + (x + w*.62) + ' ' + (y - 4) + ' ' + (x + w*.72) + ' ' + (y + h*.2) +
+                    ' Q' + r + ' ' + (y + h*.18) + ' ' + r + ' ' + (my + 6) + ' Q' + r + ' ' + b + ' ' + (r - 18) + ' ' + b + ' Z';
+        return bumps;
+      case 'clone':    // a ticket torn from a stub: it copies one answer
+        return 'M' + (x + c) + ' ' + y + ' H' + (r - c) + ' Q' + r + ' ' + y + ' ' + r + ' ' + (y + c) + ' V' + (my - 9) + ' A9 9 0 0 0 ' + r + ' ' + (my + 9) +
+               ' V' + (b - c) + ' Q' + r + ' ' + b + ' ' + (r - c) + ' ' + b + ' H' + (x + c) + ' Q' + x + ' ' + b + ' ' + x + ' ' + (b - c) +
+               ' V' + (my + 9) + ' A9 9 0 0 0 ' + x + ' ' + (my - 9) + ' V' + (y + c) + ' Q' + x + ' ' + y + ' ' + (x + c) + ' ' + y + ' Z';
+      case 'deep':     // stacked layers, one step per hidden layer
+        return 'M' + (x + 16) + ' ' + y + ' H' + (r - 16) + ' V' + (y + h*.33) + ' H' + (r - 8) + ' V' + (y + h*.66) + ' H' + r + ' V' + b +
+               ' H' + x + ' V' + (y + h*.66) + ' H' + (x + 8) + ' V' + (y + h*.33) + ' H' + (x + 16) + ' Z';
+      case 'exit':     // an arrow leaving the diamond
+        return 'M' + x + ' ' + (y + h*.18) + ' H' + (r - 30) + ' V' + y + ' L' + r + ' ' + my + ' L' + (r - 30) + ' ' + b + ' V' + (b - h*.18) + ' H' + x + ' Z';
+    }
+    return rr(x, y, r, b, c);
+  }
   var chipColour = { p: ['#4a74ad', '#ffffff'], d: ['#ee7b5f', '#14243a'], n: ['#8a98a8', '#14243a'], '\u03bb': ['#e8b44c', '#14243a'] };
   var info = {
     camera:  { lab: 'Camera rays', sub: 'the path tracer', tag: 'traced exactly',
@@ -617,7 +671,7 @@ td { color: var(--grey); }
     nodeEls = {}; edgeEls = {};
     svg.setAttribute('viewBox', L.view);
     var defs = el('defs', {}, svg);
-    [['navy', NAVY], ['slate', SLATE], ['teal', TEAL], ['salmon', SALMON]].forEach(function (pc) {
+    Object.keys(PAL).map(function (k) { return [k, PAL[k]]; }).forEach(function (pc) {
       var gr = el('linearGradient', { id: 'pvc-' + pc[0], x1: 0, y1: 0, x2: 0, y2: 1 }, defs);
       el('stop', { offset: '0%', 'stop-color': pc[1][0] }, gr);
       el('stop', { offset: '100%', 'stop-color': pc[1][1] }, gr);
@@ -650,30 +704,33 @@ td { color: var(--grey); }
       edgeEls[key] = el('path', { d: d, class: 'edge' + (key === 'exit-camera' ? ' back' : ''), 'marker-end': 'url(#archArrow)' }, layer);
     });
     var note = el('text', { x: L.label[0], y: L.label[1], 'text-anchor': 'middle', fill: '#5d5d61', 'font-size': 13, 'font-family': 'Hanken Grotesk, sans-serif' }, svg);
-    note.textContent = 'dashed: the exit ray returns to the path tracer';
+    note.textContent = m === 'wide' ? 'grey: exact path tracing · green: network input · violet: shared network · decoders in their own colours · dashed: the exit ray returns to the path tracer' : 'dashed: the exit ray returns to the path tracer';
     Object.keys(R).forEach(function (id) {
       var n = R[id], d = info[id];
       var g = el('g', { class: 'node', tabindex: 0, role: 'button', 'aria-label': d.lab + ', ' + d.sub }, svg);
-      var pc = plastic[id], name = pc === NAVY ? 'navy' : pc === SLATE ? 'slate' : pc === TEAL ? 'teal' : 'salmon';
-      var T = 7;
-      el('rect', { class: 'shadow', x: n.x + 3, y: n.y + T + 5, width: n.w, height: n.h, rx: 12 }, g);
-      el('rect', { class: 'side', x: n.x, y: n.y + T, width: n.w, height: n.h, rx: 12, fill: SIDE[name], stroke: pc[2], 'stroke-opacity': .45, 'stroke-width': 1.2 }, g);
-      el('rect', { class: 'sideline', x: n.x + 6, y: n.y + n.h + T - 2, width: n.w - 12, height: 1, fill: '#ffffff', opacity: .12 }, g);
-      var rect = el('rect', { class: 'box', x: n.x, y: n.y, width: n.w, height: n.h, rx: 12, fill: 'url(#pvc-' + name + ')', stroke: pc[2] }, g);
-      el('rect', { class: 'face', x: n.x, y: n.y, width: n.w, height: n.h, rx: 12, fill: 'url(#pvc-satin)' }, g);
-      el('rect', { class: 'face wear', x: n.x, y: n.y, width: n.w, height: n.h, rx: 12, fill: 'url(#pvc-wear)' }, g);
+      var name = group[id], pc = PAL[name];
+      var T = 7, D = shape(id, n.x, n.y, n.w, n.h);
+      var lower = el('g', { class: 'shadow' }, g);
+      el('path', { d: D, transform: 'translate(3 ' + (T + 5) + ')' }, lower);
+      var sideG = el('g', { class: 'side' }, g);
+      el('path', { d: D, transform: 'translate(0 ' + T + ')', fill: SIDE[name], stroke: pc[2], 'stroke-opacity': .45, 'stroke-width': 1.2, 'stroke-linejoin': 'round' }, sideG);
+      el('g', { class: 'sideline' }, g);
+      var rect = el('path', { class: 'box', d: D, fill: 'url(#pvc-' + name + ')', stroke: pc[2], 'stroke-linejoin': 'round' }, g);
+      el('path', { class: 'face', d: D, fill: 'url(#pvc-satin)' }, g);
+      el('path', { class: 'face wear', d: D, fill: 'url(#pvc-wear)' }, g);
       var tg = el('linearGradient', { id: 'pvc-tilt-' + id }, defs);
       el('stop', { offset: '0%', 'stop-color': '#000000', 'stop-opacity': 0 }, tg);
       el('stop', { offset: '100%', 'stop-color': '#ffffff', 'stop-opacity': 0 }, tg);
-      el('rect', { class: 'face tiltshade', x: n.x, y: n.y, width: n.w, height: n.h, rx: 12, fill: 'url(#pvc-tilt-' + id + ')' }, g);
+      el('path', { class: 'face tiltshade', d: D, fill: 'url(#pvc-tilt-' + id + ')' }, g);
       g.dataset.id = id;
-      el('rect', { class: 'face', x: n.x + 1, y: n.y + 1, width: n.w - 2, height: n.h - 2, rx: 11, fill: 'none', stroke: 'url(#pvc-rim)', 'stroke-width': 1.5 }, g);
+      el('path', { class: 'face', d: D, fill: 'none', stroke: 'url(#pvc-rim)', 'stroke-width': 1.5, 'stroke-linejoin': 'round' }, g);
       g.dataset.cx = n.x + n.w/2; g.dataset.cy = n.y + n.h/2; g.dataset.hw = n.w/2; g.dataset.hh = n.h/2;
       var cx = n.x + n.w/2;
-      var t = el('text', { class: 'lab', x: cx, y: n.y + (d.chips ? 32 : n.h/2 - 4), 'text-anchor': 'middle' }, g);
+      var nudge = id === 'camera' ? 6 : id === 'stochastic' ? 5 : 0;
+      var t = el('text', { class: 'lab', x: cx, y: n.y + nudge + (d.chips ? 32 : n.h/2 - 4), 'text-anchor': 'middle' }, g);
       t.textContent = (m === 'tall' && id === 'clone') ? 'Clone' : d.lab;
       t.setAttribute('fill', pc[3]);
-      var s = el('text', { class: 'sub', x: cx, y: n.y + (d.chips ? 54 : n.h/2 + 18), 'text-anchor': 'middle' }, g);
+      var s = el('text', { class: 'sub', x: cx, y: n.y + nudge + (d.chips ? 54 : n.h/2 + 18), 'text-anchor': 'middle' }, g);
       s.textContent = (m === 'tall' && id === 'clone') ? 'baseline' : d.sub;
       s.setAttribute('fill', pc[4]);
       if (d.chips) {
