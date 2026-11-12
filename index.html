@@ -407,33 +407,33 @@ td { color: var(--grey); }
 <tr><td>all three cuts</td><td>0.358</td><td class="best">0.386</td><td class="best">0.386</td></tr>
 </tbody>
 </table>
-<p class="tiny">Mean of five training runs, scored against the reference. The two committed decoders pick the exit facet more often, yet under Pearson pixel correlation they agree less on every diamond, in 29 of 30 seed-matched pairs. Under LPIPS the order reverses, and they win all 30 pairs. Two reference renders score an LPIPS of 0.026–0.028, so no decoder yet looks like the reference. The scores above the table are for the one render shown.</p>
+<p class="tiny">Mean of five training runs, scored against the reference.</p>
 </div>
 </div>
-<p class="say">Why do the metrics disagree? Pixel correlation penalises a misplaced highlight <span class="hi">twice</span>, once where it lands and once where it should have been, so blurring pays. LPIPS rewards <span class="hi">sharp facets</span>, even displaced ones.</p>
+<p class="say">So why do the metrics above disagree? Pixel correlation penalises a misplaced highlight <span class="hi">twice</span>, once where it lands and once where it should have been, so blurring pays. LPIPS rewards <span class="hi">sharp facets</span>, even displaced ones.</p>
 
-<p class="say" id="failures">Where does it go wrong? On <span class="hi">long routes</span>. Each facet met is an edge where a small change in entry sends light elsewhere, and small networks <span class="hi">smooth those jumps away</span>.</p>
+<p class="say" id="failures">Where do our neural predictions go wrong? Each facet a ray bounces off is an edge where a small change in entry sends light to a different exit, and so small networks <span class="hi">smooth those jumps away</span>.</p>
 <div class="facts">
-<div class="fact"><div class="v">59%</div><p>of paths that meet two or three facets leave through the correct exit facet. Given the true facet, they leave within a median of 11° of the traced direction</p></div>
-<div class="fact"><div class="v">2%</div><p>of paths that meet sixteen facets or more leave through the correct exit facet. Given the true facet, they miss the traced direction by a median of 44°</p></div>
-<div class="fact"><div class="v">30 / 32%</div><p>exit-facet accuracy on the pavilion against the crown of the GIA brilliant, so the pavilion is predicted almost as well. It fails only when no training entries reach it</p></div>
+<div class="fact"><div class="v">59%</div><p>of paths that meet two or three facets leave through the correct exit facet.<br>Given the true facet, they leave within a median of 11° of the traced direction</p></div>
+<div class="fact"><div class="v">2%</div><p>of paths that meet sixteen facets or more leave through the correct exit facet.<br>Given the true facet, they miss the traced direction by a median of 44°</p></div>
+<div class="fact"><div class="v">30 / 32%</div><p>exit-facet accuracy on the pavilion against the crown of the GIA brilliant. This means the pavilion is predicted almost as well as the crown. The pavilion fails only when no training entries reach it</p></div>
 </div>
 
-<p class="say">Is it faster? Each network call is <span class="hi">three times faster</span> than tracing the inside, but the render around it grows, so the whole image takes <span class="hi">29% longer</span>.</p>
+<p class="say">Is our pipeline faster? Each network call is <span class="hi">three times faster</span> than tracing the inside, but the render around it grows, so the whole image takes <span class="hi">29% longer</span>.</p>
 <div class="facts">
 <div class="fact"><div class="v">10.4 µs</div><p>per ray through the network, against 31 µs to trace it</p></div>
 <div class="fact"><div class="v">341 s</div><p>for a neural render, against 264 s for the exact tracer</p></div>
-<div class="fact"><div class="v">17+</div><p>rays per call before the network beats tracing. The renderer averages 83, so the inside is faster, and the time is lost rendering what is around it</p></div>
+<div class="fact"><div class="v">17+</div><p>rays per call before the network beats tracing. The renderer averages 83, so the inside is faster, and the time is lost on the pipeline calculations around it</p></div>
 </div>
 
-<p class="say" id="transfer">Does it carry to a new diamond? Moved to another cut without retraining, the deep decoder <span class="hi">keeps the old diamond's routes</span>. It adds light almost everywhere and misses the bright reflections.</p>
+<p class="say" id="transfer">Do our results transfer to a new diamond? Shading a different diamond cut without retraining, the deep decoder <span class="hi">keeps the old diamond's routes and surface normals</span>. Therefore, it adds light almost everywhere onto the diamond but misplaces the bright reflections.</p>
 <div class="panel" style="margin-top: 50px; background: #fff"><img src="media/graphs/transfer_deep.png?v=8" alt="Deep decoder trained on each cut, transferred from another cut, and the transferred render minus the reference: red is added light, blue is missed light" style="width: 100%; display: block"></div>
 
 <div class="head" id="verdict"><span class="tiny">[ hypotheses ]</span><h2>The verdict</h2></div>
 <div class="rows">
-<div class="verdict"><span class="name">↳ Accuracy is not appearance</span><span class="what">Under pixel correlation, the decoders that pick the exit facet most often agree least. Under LPIPS, the order reverses.</span><span class="res">H1 · under pixel correlation</span></div>
-<div class="verdict"><span class="name">↳ Where errors arise</span><span class="what">Errors grow with route length. The pavilion fails only when training never reaches it.</span><span class="res">H2 · in part</span></div>
-<div class="verdict"><span class="name">↳ Cost</span><span class="what">Three times faster per ray, but 29% slower per image. Stopping the exact trace after 16 reflections beats it on both cost and quality.</span><span class="res">H3 · for this implementation</span></div>
+<div class="verdict"><span class="name">↳ Accuracy is not appearance</span><span class="what">Under Pearson’s pixel correlation, the deterministic decoders that pick the exit facet most often receive the lowest scores. But under LPIPS, this order reverses.</span><span class="res">H1 · under pixel correlation</span></div>
+<div class="verdict"><span class="name">↳ Where errors arise</span><span class="what">Longer ray paths receive higher exit-ray prediction errors. The pavilion fails only when training never reaches it.</span><span class="res">H2 · in part</span></div>
+<div class="verdict"><span class="name">↳ Cost</span><span class="what">Our neural method is three times faster per ray, but 29% slower per image against path tracing. Stopping the exact trace after 16 reflections beats our neural method on both cost and visual quality.</span><span class="res">H3 · for this implementation</span></div>
 </div>
 
 <p class="limits">Limits. One lighting rig, simplified meshes, a CPU renderer, and image scores from one front view of each diamond.</p>
@@ -488,7 +488,7 @@ td { color: var(--grey); }
     document.getElementById('sConRef').textContent = 'reference ' + d.ref;
     document.getElementById('sEn').textContent = s[2];
     document.getElementById('sNote').textContent = state.truefacet
-      ? 'This is an experiment, not a renderer. The exact tracer picks each exit facet. Contrast rises toward the reference, but each shard is still misplaced within its facet.'
+      ? 'The exact tracer gives each exit facet to the neural pipeline. By doing so, contrast rises toward the reference, and a diamond visual is achieved that we, as people, would recognise. However, we discover that despite an overall recognisable appearance, shards are still misplaced within individual facets.'
       : notes[state.head];
   }
   function press(group, b) {
@@ -920,29 +920,29 @@ td { color: var(--grey); }
       use: 'Our samples are not independent, so we resample blocks rather than single values.' }
   ];
   var links = [
-    [1, 4, 'Both put appearance into small networks that run while rendering.'],
-    [4, 5, 'Both store a surface’s appearance in a network.'],
-    [5, 6, 'Neural materials, from a whole layered surface down to a single reflection.'],
-    [1, 7, 'Both learn light that scatters many times inside a medium.'],
-    [7, 8, 'Learned transport inside a volume. In both, the medium scatters smoothly.'],
-    [7, 9, 'Thomas Müller worked on both.'],
-    [9, 10, 'Two ways to learn inside a path tracer, shortening paths or guiding them.'],
-    [9, 15, 'Instant NGP shows its hash encoding on radiance caching too.'],
-    [2, 3, 'The equation, and the book that turns it into a renderer.'],
-    [3, 18, 'Wenzel Jakob co-wrote the book and leads Mitsuba.'],
-    [8, 18, 'Both come from Wenzel Jakob’s group.'],
-    [11, 12, 'Both render gemstones, one exactly and one with a capped trace.'],
-    [13, 14, 'Fourier features are one answer to spectral bias.'],
-    [13, 15, 'Hash encodings are another.'],
-    [14, 15, 'Two encodings made for sharp detail, our next step.'],
-    [16, 20, 'Two ways to predict an exit, a spread of Gaussians or one copied answer.'],
-    [17, 1, 'We added LEAN’s spread to the cloth model’s radiance map.'],
-    [19, 21, 'Both shape how our networks learn.'],
-    [22, 25, 'Both test whether a gap between decoders is real.'],
-    [25, 26, 'Künsch extends the bootstrap to correlated data.'],
-    [23, 24, 'Both judge images the way a viewer would, and disagree with pixel correlation.'],
-    [2, 7, 'Deep scattering learns one piece of the rendering equation.'],
-    [12, 18, 'Our truncated trace, like theirs, is the exact tracer stopped early.']
+    [1, 4, 'Both store how a material looks in small networks that run during rendering.'],
+    [4, 5, 'Both learn how light reflects off a surface, stored in a network.'],
+    [5, 6, 'Both are neural materials. NeuMIP learns a whole textured surface, Neural BRDF a single point’s reflection.'],
+    [1, 7, 'Both replace light that scatters many times inside a material with a learned model.'],
+    [7, 8, 'Both learn light transport inside a volume, and both assume it scatters smoothly, unlike a diamond.'],
+    [7, 9, 'Both are by Thomas Müller and colleagues, applying networks to light transport.'],
+    [9, 10, 'Both put a network inside a path tracer. One shortens paths, the other chooses where they go.'],
+    [9, 15, 'Instant NGP tests its hash encoding on neural radiance caching.'],
+    [2, 3, 'Kajiya states the equation, and PBRT shows how to build a renderer that solves it.'],
+    [3, 18, 'Wenzel Jakob co-wrote PBRT and leads the Mitsuba renderer.'],
+    [8, 18, 'Both come from Wenzel Jakob’s lab.'],
+    [11, 12, 'Both render gemstones. Sun et al. trace them exactly, Guy and Soler cap the number of reflections.'],
+    [13, 14, 'Fourier features help a network learn the sharp detail that spectral bias makes it miss.'],
+    [13, 15, 'Hash encodings are a second way to overcome spectral bias.'],
+    [14, 15, 'Both encode inputs so small networks learn sharp detail, the next step for our operator.'],
+    [16, 20, 'Our two ways to predict an exit: a mixture spreads it over several Gaussians, cloning copies one answer.'],
+    [17, 1, 'Our second attempt added LEAN’s variance to the cloth model’s radiance map.'],
+    [19, 21, 'SiLU is our networks’ activation and Adam their optimiser.'],
+    [22, 25, 'Both test whether a score gap between decoders is real or due to noise.'],
+    [25, 26, 'Künsch adapts the bootstrap to correlated samples, such as ours.'],
+    [23, 24, 'Both score images the way a viewer would, and on our renders they rank decoders differently from pixel correlation.'],
+    [2, 7, 'Deep scattering learns the in-volume part of the rendering equation with a network.'],
+    [12, 18, 'Our truncation baseline follows Guy and Soler, stopping the exact trace after a fixed number of reflections.']
   ];
   papers.forEach(function (p) { links.push([0, p.id, p.use, true]); });
   links = links.filter(function (l) { return !(l[0] === 0 && l[1] === 0); });
