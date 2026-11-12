@@ -357,10 +357,6 @@ td { color: var(--grey); }
   .arch .archimg { display: block; margin: 4px auto 0; max-width: 420px; }
   .arch .scroll, .arch .choose, .arch .hint { display: none; }
 }
-.leanhover { position: relative; }
-.leanhover .diffimg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: 2; opacity: 0; transition: opacity .35s ease; pointer-events: none; }
-.leanhover .difftag { position: absolute; left: 10px; top: 10px; z-index: 3; font-size: 13px; padding: 3px 8px; border-radius: 999px; background: rgba(0,0,0,.7); color: #f2f2f2; opacity: 0; transition: opacity .35s; pointer-events: none; }
-.tile:hover .leanhover .diffimg, .tile:hover .leanhover .difftag, .tile:focus-within .leanhover .diffimg, .tile:active .leanhover .diffimg { opacity: 1; }
 </style>
 </head>
 <body>
@@ -397,7 +393,7 @@ td { color: var(--grey); }
 </article>
 <article class="tile">
 <div class="bar"><span>↱ Step 2 · LEAN-inspired spread</span><span>Sep</span></div>
-<div class="media leanhover"><video class="diffimg" src="media/anim/gia_lean_diff.mp4?v=2" muted loop playsinline preload="auto" aria-label="The spread video with the speckle isolated: the shading dimmed and the scattered speckles brightened"></video><span class="difftag">speckle isolated</span><video preload="none" src="media/anim/gia_lean.mp4?v=8" autoplay muted loop playsinline aria-label="Rolling diamond with the LEAN-inspired spread: scattered speckles"></video></div>
+<div class="media"><video preload="none" src="media/anim/gia_lean_diff.mp4?v=2" autoplay muted loop playsinline aria-label="Rolling diamond with the LEAN-inspired spread, speckle isolated: the shading dimmed and the scattered speckles brightened"></video></div>
 <h3>The spread</h3>
 <p>We gave back each bin in a radiance distribution map its coefficient of variation. The sparkle returns, but in random places.</p>
 </article>
@@ -1507,17 +1503,6 @@ td { color: var(--grey); }
   }
   addEventListener('scroll', check, { passive: true }); addEventListener('resize', check);
   vid.addEventListener('canplay', check); check();
-})();
-</script>
-<script>
-(function () {
-  var box = document.querySelector('.leanhover'); if (!box) return;
-  var main = box.querySelector('video:not(.diffimg)'), diff = box.querySelector('.diffimg'), tile = box.closest('.tile');
-  function on() { diff.currentTime = main.currentTime % (diff.duration || 2); diff.play().catch(function () {}); }
-  function off() { diff.pause(); }
-  tile.addEventListener('pointerenter', on); tile.addEventListener('pointerleave', off);
-  tile.addEventListener('touchstart', on, { passive: true });
-  diff.addEventListener('timeupdate', function () { if (Math.abs(diff.currentTime - main.currentTime) > .15) diff.currentTime = main.currentTime; });
 })();
 </script>
 </body>
