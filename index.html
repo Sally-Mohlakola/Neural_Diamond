@@ -117,6 +117,7 @@ th, td { padding: 9px 4px; text-align: right; border-bottom: 1px solid var(--lin
 th:first-child, td:first-child { text-align: left; }
 th { color: var(--grey); font-size: 12px; }
 td.best { color: var(--white); font-weight: 400; }
+tr.sub td { text-align: left; padding-top: 16px; opacity: .7; font-size: .85em; letter-spacing: .04em; }
 td { color: var(--grey); }
 
 /* graphs: inverted so they sit on black */
@@ -297,7 +298,7 @@ td { color: var(--grey); }
 <a class="row" href="#failures"><span class="r">↳ Short routes</span><span>Long routes ↵</span></a>
 </nav>
 
-<p class="say">We asked whether a network can learn <span class="hi">how light moves inside a diamond</span>. The network learned, and the deterministic decoders picked the right exit facet <span class="hi">more often</span>. But whether their diamonds matched the reference better <span class="hi">depended on how we measured it</span>.</p>
+<p class="say">We ask whether a neural network can learn <span class="hi">light transport inside a diamond</span>. The neural network learns, and its deterministic decoders pick the correct exit facet <span class="hi">more often than the stochastic decoder</span>. But whether their diamonds matched the reference better <span class="hi">depends on how we measured it</span>.</p>
 
 <div class="head" id="journey"><span class="tiny">[ the journey ]</span><h2>Three attempts</h2></div>
 <div class="bento three">
@@ -305,19 +306,19 @@ td { color: var(--grey); }
 <div class="bar"><span>↱ Step 1 · radiance map</span><span>Aug</span></div>
 <div class="media"><video preload="none" src="media/anim/gia_rdm_exp.mp4?v=8" autoplay muted loop playsinline aria-label="Rolling diamond rendered with the radiance map: flat, blocky shading"></video></div>
 <h3>The average</h3>
-<p>The cloth model’s map keeps one answer per incoming direction. In a diamond, rays entering different facets share it, so the shading goes flat. More rays did not help.</p>
+<p>The cloth model’s map keeps one answer per incoming direction. In a diamond, rays entering different facets aggregate it, so the shading goes flat. Sampling more rays did not help.</p>
 </article>
 <article class="tile">
 <div class="bar"><span>↱ Step 2 · LEAN-inspired spread</span><span>Sep</span></div>
 <div class="media"><video preload="none" src="media/anim/gia_lean.mp4?v=8" autoplay muted loop playsinline aria-label="Rolling diamond with the LEAN-inspired spread: scattered speckles"></video></div>
 <h3>The spread</h3>
-<p>Each bin stores an average, so we gave back its spread. The sparkle returns, but in random places. Speckle, not sparkle.</p>
+<p>Each bin in the radiance distribution map stores an average, so we gave back its coefficient of variation. The sparkle returns, but in random places.</p>
 </article>
 <article class="tile">
 <div class="bar"><span>↱ Step 3 · neural transport operator</span><span>Sep – Oct</span></div>
 <div class="media"><video preload="none" src="media/anim/gia_deep_truefacet.mp4?v=8" autoplay muted loop playsinline aria-label="GIA brilliant rolling, rendered by the deep decoder given the true exit facet"></video></div>
 <h3>The position</h3>
-<p>A network that knows where light enters, and predicts where it leaves. Shown here at its best, the deep decoder given the true exit facet.</p>
+<p>A network that knows where light enters, and predicts where it leaves. Shown here at its best is the deep decoder given the true exit facet for its predictions.</p>
 </article>
 </div>
 
@@ -334,7 +335,7 @@ td { color: var(--grey); }
 <div class="info" aria-live="polite"><div><h3 id="archTitle">The neural transport operator</h3><span class="tag" id="archTag">overview</span></div><p id="archText">The first surface is traced exactly. Inside the diamond, a network takes over. It decides whether the light escapes, through which facet, and where on that facet it leaves. The exit ray then goes back to the path tracer.</p></div>
 </div>
 <div class="head" id="papers"><span class="tiny">[ 26 references ]</span><h2>How the papers connect</h2></div>
-<p class="say" style="margin-top: 40px">No paper here renders a diamond with a network. Each one gave us <span class="hi">a piece</span>. A model to start from, a tool to build with, or a way to measure the result.</p>
+<p class="say" style="margin-top: 40px">No published paper was found to render a diamond with a neural method. But each one of the below papers gave us <span class="hi">a piece</span>. A model to start from, a tool to build with, or a way to measure the result.</p>
 <div class="legend" id="webLegend" role="group" aria-label="Highlight one group of papers"></div>
 <div class="web" id="web">
 <div class="canvas"><svg id="webPulse" aria-hidden="true"></svg><svg id="webSvg" role="group" aria-label="A web of the 26 references. Select a paper to read what it does and how it connects."></svg></div>
@@ -352,8 +353,8 @@ td { color: var(--grey); }
 
 <div class="head"><span class="tiny">[ the yardstick ]</span><h2>How a render is scored</h2></div>
 <div class="terms">
-<div class="term"><h3>Pearson pixel correlation</h3><p>Is the light in the right places? 1 is a perfect match, 0 is no relation.</p></div>
-<div class="term"><h3>LPIPS</h3><p>Does it look right to a viewer? Lower is better, and 0 looks the same.</p></div>
+<div class="term"><h3>Pearson pixel correlation</h3><p>Is the light in the correct places? 1 is a perfect match, 0 is no relation.</p></div>
+<div class="term"><h3>LPIPS</h3><p>Does it look correct to a viewer? Lower is better, and 0 looks the same.</p></div>
 <div class="term"><h3>Noise floor</h3><p>Two exact renders still differ a little. They correlate at 0.94–0.98.</p></div>
 <div class="term"><h3>Contrast</h3><p>How much the brightness varies. Flat shading scores low. The reference GIA brilliant scores 3.72.</p></div>
 <div class="term"><h3>Exit-facet accuracy</h3><p>How often light leaves through the same facet as in the exact tracer. Training rewards this.</p></div>
@@ -394,22 +395,28 @@ td { color: var(--grey); }
 <table>
 <thead><tr><th>5-seed mean</th><th>stochastic</th><th>clone (baseline)</th><th>deep</th></tr></thead>
 <tbody>
+<tr class="sub"><td colspan="4">Pearson pixel correlation ↑</td></tr>
 <tr><td>GIA brilliant</td><td class="best">0.122</td><td>0.050</td><td>0.060</td></tr>
 <tr><td>Pear brilliant</td><td class="best">0.172</td><td>0.074</td><td>0.092</td></tr>
 <tr><td>Step cut</td><td class="best">0.272</td><td>0.112</td><td>0.184</td></tr>
-<tr><td>exit-facet accuracy</td><td>0.358</td><td class="best">0.386</td><td class="best">0.386</td></tr>
+<tr class="sub"><td colspan="4">LPIPS ↓</td></tr>
+<tr><td>GIA brilliant</td><td>0.771</td><td>0.525</td><td class="best">0.493</td></tr>
+<tr><td>Pear brilliant</td><td>0.627</td><td>0.423</td><td class="best">0.416</td></tr>
+<tr><td>Step cut</td><td>0.793</td><td>0.525</td><td class="best">0.500</td></tr>
+<tr class="sub"><td colspan="4">Exit-facet accuracy ↑</td></tr>
+<tr><td>all three cuts</td><td>0.358</td><td class="best">0.386</td><td class="best">0.386</td></tr>
 </tbody>
 </table>
-<p class="tiny">Pearson pixel correlation with the reference, mean of five runs. The two committed decoders pick the exit facet more often, yet agree less on every diamond, in 29 of 30 runs matched by seed. Under LPIPS the order reverses. The scores above the table are for the one render shown.</p>
+<p class="tiny">Mean of five training runs, scored against the reference. The two committed decoders pick the exit facet more often, yet under Pearson pixel correlation they agree less on every diamond, in 29 of 30 seed-matched pairs. Under LPIPS the order reverses, and they win all 30 pairs. Two reference renders score an LPIPS of 0.026–0.028, so no decoder yet looks like the reference. The scores above the table are for the one render shown.</p>
 </div>
 </div>
 <p class="say">Why do the metrics disagree? Pixel correlation penalises a misplaced highlight <span class="hi">twice</span>, once where it lands and once where it should have been, so blurring pays. LPIPS rewards <span class="hi">sharp facets</span>, even displaced ones.</p>
 
 <p class="say" id="failures">Where does it go wrong? On <span class="hi">long routes</span>. Each facet met is an edge where a small change in entry sends light elsewhere, and small networks <span class="hi">smooth those jumps away</span>.</p>
 <div class="facts">
-<div class="fact"><div class="v">59%</div><p>right exit facet when light meets two or three facets. Given the true facet, these leave a median of 11° off</p></div>
-<div class="fact"><div class="v">2%</div><p>right exit facet when light meets sixteen or more. Given the true facet, these miss by a median of 44°</p></div>
-<div class="fact"><div class="v">30 / 32%</div><p>pavilion against crown exits on the GIA brilliant. The pavilion fails only when training never reaches it</p></div>
+<div class="fact"><div class="v">59%</div><p>of paths that meet two or three facets leave through the correct exit facet. Given the true facet, they leave within a median of 11° of the traced direction</p></div>
+<div class="fact"><div class="v">2%</div><p>of paths that meet sixteen facets or more leave through the correct exit facet. Given the true facet, they miss the traced direction by a median of 44°</p></div>
+<div class="fact"><div class="v">30 / 32%</div><p>exit-facet accuracy on the pavilion against the crown of the GIA brilliant, so the pavilion is predicted almost as well. It fails only when no training entries reach it</p></div>
 </div>
 
 <p class="say">Is it faster? Each network call is <span class="hi">three times faster</span> than tracing the inside, but the render around it grows, so the whole image takes <span class="hi">29% longer</span>.</p>
@@ -430,14 +437,13 @@ td { color: var(--grey); }
 </div>
 
 <p class="limits">Limits. One lighting rig, simplified meshes, a CPU renderer, and image scores from one front view of each diamond.</p>
-<p class="say">These results narrow the problem rather than close it. What remains is placing light <span class="hi">within each facet</span>, a task that encodings for sharp detail are made for. And unlike cloth, a diamond gives <span class="hi">all its edges in advance</span>.</p>
 
 <div class="foot">
 <a class="tile" href="https://github.com/Sally-Mohlakola/Neural_Diamond"><span class="tiny">↱ code</span><span class="big">↳ GitHub</span></a>
 <a class="tile" href="#compare"><span class="tiny">↱ try it</span><span class="big">↳ Compare renders</span></a>
-<div class="tile"><span class="tiny">Gopolang Mohlakola · supervised by Branden Ingram and Pravesh Ranchod</span><span class="big">School of Computer Science and Applied Mathematics, University of the Witwatersrand</span><span class="tiny">Built on Soh &amp; Montazeri's neural cloth model (CGF 2024), LEAN mapping (Olano &amp; Baker, 2010) and mixture density networks (Bishop, 1994).</span></div>
+<div class="tile"><span class="tiny">Gopolang Mohlakola · supervised by Branden Ingram and Pravesh Ranchod</span><span class="big">School of Computer Science and Applied Mathematics, University of the Witwatersrand</span></div>
 </div>
-<div class="legal tiny"><span>© 2026 Gopolang Mohlakola</span><span>Rendered with Mitsuba 3 · trained on the Wits cluster</span></div>
+<div class="legal tiny"><span>© 2026 Gopolang Mohlakola</span><span>Rendered with Mitsuba 3 · trained on the Wits Mathematical Sciences cluster</span></div>
 
 </div>
 
@@ -461,7 +467,7 @@ td { color: var(--grey); }
   };
   var cutNames = { gia: 'GIA brilliant', pear: 'Pear brilliant', step: 'step cut' };
   var notes = {
-    stochastic: 'The stochastic decoder spreads its bets across several exits. Light lands roughly in the right places, but blurred. It agrees best under pixel correlation.',
+    stochastic: 'The stochastic decoder spreads its bets across several exits. Light lands roughly in the correct places, but blurred. It agrees best under pixel correlation.',
     clone: 'The clone commits to one exit. Real contrast appears, but in the wrong places, so pixel correlation drops.',
     deep: 'The deep decoder has more capacity, yet still commits to one exit. Its flashes are sharp but mostly misplaced. It scores best under LPIPS.'
   };
@@ -559,7 +565,7 @@ td { color: var(--grey); }
     escape:  { lab: 'Escape head', sub: 'sigmoid · sθ', tag: 'learned',
       text: 'A sigmoid gives the chance that the light leaves the stone at all. Light that never escapes is modelled on its own, instead of being forced through an exit.' },
     facet:   { lab: 'Facet head', sub: 'softmax · πθ', tag: 'learned',
-      text: 'A softmax over every triangle of the mesh picks the exit facet. On the GIA brilliant it is right for 36–39% of test paths. It is right for 59% of short routes, but only 2% of routes that meet sixteen facets or more.' },
+      text: 'A softmax over every triangle of the mesh picks the exit facet. On the GIA brilliant it is correct for 36–39% of test paths. It is correct for 59% of short routes, but only 2% of routes that meet sixteen facets or more.' },
     embed:   { lab: 'Facet embedding', sub: '16 numbers', tag: 'learned',
       text: 'The chosen facet becomes sixteen learned numbers, so the decoder knows which facet it is placing the light on.' },
     trunk:   { lab: 'Own trunk', sub: 'deep decoder only', tag: 'learned', colour: 'deep',
@@ -574,7 +580,7 @@ td { color: var(--grey); }
       text: 'Two numbers place the exit inside the chosen facet, as weights on its corners, so it always lands on that facet. The other two lean the direction away from the facet’s normal, so the light always leaves. The ray then goes back to the path tracer.' }
   };
   var walk = {
-    stochastic: 'The ray is traced to the first surface and becomes ten numbers. The encoder reads them, the escape head decides whether the light leaves, and the facet head picks the facet. The stochastic decoder then spreads the exit over four Gaussians and samples one. Its light lands near the right place, but blurred.',
+    stochastic: 'The ray is traced to the first surface and becomes ten numbers. The encoder reads them, the escape head decides whether the light leaves, and the facet head picks the facet. The stochastic decoder then spreads the exit over four Gaussians and samples one. Its light lands near the correct place, but blurred.',
     clone: 'The ray is traced to the first surface and becomes ten numbers. The encoder reads them, the escape head decides whether the light leaves, and the facet head picks the facet. The clone then places one exit, copied from what it saw in training. The flash is sharp, but often in the wrong place.',
     deep: 'The ray is traced to the first surface and becomes ten numbers. The facet head picks the facet as before, but the deep decoder reads the entry state again, through its own trunk. Its three layers place one sharp exit. It picks facets most accurately, yet its image still agrees less than the blurred one.'
   };
@@ -838,26 +844,26 @@ td { color: var(--grey); }
       what: 'Puts the light that scatters inside cloth fibres into two small networks, trained from a radiance distribution map.',
       use: 'Our starting point. Its map works for cloth, where hundreds of fibres sit in one pixel. On a diamond it renders flat, so we moved to a transport operator.' },
     { id: 2, n: 2, short: 'Kajiya', group: 'rendering', who: 'Kajiya, 1986', title: 'The rendering equation',
-      what: 'Writes all of light transport as one integral equation.',
+      what: 'Expresses all light transport in a scene as a single integral equation.',
       use: 'Every renderer in this project, exact or neural, estimates this equation.' },
     { id: 3, n: 3, short: 'PBRT', group: 'rendering', who: 'Pharr, Jakob and Humphreys, 2023', title: 'Physically Based Rendering: From Theory to Implementation',
       what: 'The standard book on physically based rendering, from the theory to working code.',
       use: 'Our reference for Monte Carlo noise, and why two exact renders never match pixel for pixel.' },
     { id: 4, n: 4, short: 'Zeltner et al.', group: 'appearance', who: 'Zeltner et al., 2024', title: 'Real-time neural appearance models',
       what: 'Layered materials learned by small networks that run inside a real-time renderer.',
-      use: 'It shows that a small network can run at render time. Its light stays near the surface, while mine travels through the stone.' },
+      use: 'It shows that a small network can run at render time. Its light stays near the surface, while ours travels through the diamond.' },
     { id: 5, n: 5, short: 'NeuMIP', group: 'appearance', who: 'Kuznetsov et al., 2021', title: 'NeuMIP: Multi-resolution neural materials',
       what: 'Neural materials stored at several resolutions, so they can be filtered like a texture.',
-      use: 'Another surface material. It shows what neural appearance leaves out, the inside of an object.' },
+      use: 'Another neural surface material. Like the other appearance models, it handles light at the surface only, never inside the object, which is the part our operator learns.' },
     { id: 6, n: 6, short: 'Neural BRDF', group: 'appearance', who: 'Sztrajman et al., 2021', title: 'Neural BRDF representation and importance sampling',
       what: 'A network that stores how a surface reflects light, and can also be sampled efficiently.',
-      use: 'The simplest kind of neural appearance, light reflecting at a single point.' },
+      use: 'The simplest form of neural appearance. It models light reflecting at one surface point, with no transport through the object.' },
     { id: 7, n: 7, short: 'Deep scattering', group: 'transport', who: 'Kallweit et al., 2017', title: 'Deep scattering: Rendering atmospheric clouds with radiance-predicting neural networks',
       what: 'Replaces the many scattering events inside a cloud with a network that predicts the radiance.',
-      use: 'The closest idea to mine, learned transport inside a volume. Clouds scatter smoothly. A diamond does not.' },
+      use: 'The closest idea to ours, learned light transport inside a volume. But clouds scatter light smoothly, while a diamond’s facets redirect it sharply.' },
     { id: 8, n: 8, short: 'Vicini et al.', group: 'transport', who: 'Vicini, Koltun and Jakob, 2019', title: 'A learned shape-adaptive subsurface scattering model',
       what: 'Learns where light leaves a translucent object, given where it enters, with a conditional variational autoencoder.',
-      use: 'Very close in spirit, an entry-to-exit model. Its materials are diffuse, so the exits it learns are smooth.' },
+      use: 'Very close in spirit, an entry-to-exit model. Its materials are diffuse, so the exits it learns vary smoothly with the entry. A diamond’s exits do not.' },
     { id: 9, n: 9, short: 'Radiance caching', group: 'transport', who: 'Müller et al., 2021', title: 'Real-time neural radiance caching for path tracing',
       what: 'Trains a small network while rendering, so a path can stop after a few bounces and read the rest from the network.',
       use: 'It shortens paths but still traces them. Our operator replaces the inside of the stone instead.' },
@@ -866,7 +872,7 @@ td { color: var(--grey); }
       use: 'It guides paths rather than replacing them. Together with radiance caching, it marks what learned path tracing already does.' },
     { id: 11, n: 11, short: 'Rendering diamonds', group: 'gems', who: 'Sun, Fracchia and Drew, 2000', title: 'Rendering diamonds',
       what: 'Renders diamonds with Fresnel reflection, absorption and dispersion.',
-      use: 'It sets out what an exact diamond renderer must model. Fire comes from dispersion.' },
+      use: 'It sets out what an exact diamond renderer must model: Fresnel reflection, absorption, and the dispersion that produces fire.' },
     { id: 12, n: 12, short: 'Guy & Soler', group: 'gems', who: 'Guy and Soler, 2004', title: 'Graphics gems revisited: Fast and physically-based rendering of gemstones',
       what: 'Renders gemstones in real time by tracing a bounded number of internal reflections.',
       use: 'The idea behind our truncation baseline. Stopping the exact trace after 16 reflections beat our operator on cost and quality.' },
@@ -875,7 +881,7 @@ td { color: var(--grey); }
       use: 'Our best explanation for where the operator fails. A long route’s exit jumps with its entry, and a small network smooths those jumps away.' },
     { id: 14, n: 14, short: 'Fourier features', group: 'limits', who: 'Tancik et al., 2020', title: 'Fourier features let networks learn high frequency functions in low dimensional domains',
       what: 'Feeds a network sines and cosines of its input, so a small network can learn sharp detail.',
-      use: 'A remedy we did not try, and the first we would test next.' },
+      use: 'A remedy for spectral bias that we did not try. It is the first we would test next, to place light more precisely within each facet.' },
     { id: 15, n: 15, short: 'Instant NGP', group: 'limits', who: 'Müller et al., 2022', title: 'Instant neural graphics primitives with a multiresolution hash encoding',
       what: 'A hash encoding at many resolutions that lets tiny networks learn sharp detail quickly.',
       use: 'The second remedy for spectral bias, also left for future work.' },
@@ -896,13 +902,13 @@ td { color: var(--grey); }
       use: 'Our clone decoder learns the same way. It copies the traced exit directly.' },
     { id: 21, n: 21, short: 'Adam', group: 'tools', who: 'Kingma and Ba, 2015', title: 'Adam: A method for stochastic optimization',
       what: 'An optimiser that adapts its step size for every weight.',
-      use: 'It trains every decoder in this study.' },
+      use: 'The optimiser that trains every decoder in this study.' },
     { id: 22, n: 22, short: 'Spearman', group: 'measure', who: 'Spearman, 1904', title: 'The proof and measurement of association between two things',
       what: 'Corrects a correlation for the noise in both of its measurements, which is disattenuation.',
-      use: 'It lets us check whether render noise explains the gap between decoders. It does not.' },
+      use: 'It lets us check whether render noise explains the gap between decoders. After the correction, the decoders keep the same order, so noise does not explain it.' },
     { id: 23, n: 23, short: 'FLIP', group: 'measure', who: 'Andersson et al., 2020', title: 'FLIP: A difference evaluator for alternating images',
       what: 'Scores the difference a viewer would notice when two images are flipped back and forth.',
-      use: 'One of our perceptual metrics. It barely separated the decoders.' },
+      use: 'One of our perceptual metrics. It rated all three decoders within 0.03 of each other on every cut, so it barely separated them.' },
     { id: 24, n: 24, short: 'LPIPS', group: 'measure', who: 'Zhang et al., 2018', title: 'The unreasonable effectiveness of deep features as a perceptual metric',
       what: 'Compares images through the features of a trained network, which tracks human judgement well.',
       use: 'The metric that reversed our ranking. It rewards the sharper decoders that Pearson correlation penalises.' },
@@ -1158,7 +1164,7 @@ td { color: var(--grey); }
     if (p.n) html += '<span class="num">[' + p.n + '] · ' + groups[p.group].name + '</span>';
     else html += '<span class="num">the centre of the web</span>';
     html += '<h3>' + p.title + '</h3><span class="who">' + p.who + '</span>';
-    html += '<div><h4>What it does</h4><p>' + p.what + '</p></div>';
+    html += '<div><h4>What the method does</h4><p>' + p.what + '</p></div>';
     html += '<div><h4>' + (p.id === 0 ? 'How to read the web' : 'How we used it') + '</h4><p class="use">' + p.use + '</p></div>';
     var ns = neighbours(id).filter(function (x) { return !(id !== 0 && x[2]); });
     if (id === 0) ns = [];
