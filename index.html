@@ -262,6 +262,10 @@ td { color: var(--grey); }
 .rows .verdict .res { font-weight: 500; }
 .row:hover { border-color: #d6d6da; }
 .term:hover { border-color: #d6d6da; box-shadow: inset 0 1px 0 rgba(255, 255, 255, .75), inset 0 -1px 0 rgba(0, 0, 0, .35), 0 16px 32px rgba(0, 0, 0, .6); }
+.row, .verdict { transition: transform .25s ease, border-color .2s, box-shadow .25s ease; }
+.row:hover, .verdict:hover { transform: translateY(-6px); border-color: #d6d6da; box-shadow: inset 0 1px 0 rgba(255, 255, 255, .75), inset 0 -1px 0 rgba(0, 0, 0, .35), 0 16px 32px rgba(0, 0, 0, .6); }
+@media (prefers-reduced-motion: reduce) { .row, .row:hover, .verdict, .verdict:hover { transition: none; transform: none; } }
+.say .gap { display: block; height: .9em; }
 
 @media (max-width: 860px) {
   .bento.three, .steps, .terms { grid-template-columns: minmax(0, 1fr); }
@@ -411,14 +415,14 @@ td { color: var(--grey); }
 </div>
 <p class="say">So why do the metrics above disagree? Pixel correlation penalises a misplaced highlight <span class="hi">twice</span>, once where it lands and once where it should have been, so blurring pays. LPIPS rewards <span class="hi">sharp facets</span>, even displaced ones.</p>
 
-<p class="say" id="transfer">Do our results transfer to a new diamond? Shading a different diamond cut without retraining, the deep decoder <span class="hi">keeps the old diamond's routes and surface normals</span>. Therefore, it adds light almost everywhere onto the diamond but misplaces the bright reflections.</p>
+<p class="say" id="transfer">Do our results transfer to a new diamond? Shading a different diamond cut without retraining, the deep decoder <span class="hi">keeps the old diamond's routes and surface normals</span>.<span class="gap"></span>Therefore, it adds light almost everywhere onto the diamond but misplaces the bright reflections.</p>
 <div class="panel" style="margin-top: 50px; background: #fff"><img src="media/graphs/transfer_deep.png?v=8" alt="Deep decoder trained on each cut, transferred from another cut, and the transferred render minus the reference: red is added light, blue is missed light" style="width: 100%; display: block"></div>
 
 <div class="head" id="verdict"><span class="tiny">[ hypotheses ]</span><h2>The verdict</h2></div>
 <div class="rows">
 <div class="verdict"><span class="name">↳ Accuracy is not appearance</span><span class="what">Under Pearson’s pixel correlation, the deterministic decoders that pick the exit facet most often receive the lowest scores. But under LPIPS, this order reverses.</span><span class="res">H1 · under pixel correlation</span></div>
 <div class="verdict"><span class="name">↳ Where errors arise</span><span class="what">Longer ray paths receive higher exit-ray prediction errors. The pavilion fails only when training never reaches it.</span><span class="res">H2 · in part</span></div>
-<div class="verdict"><span class="name">↳ Cost</span><span class="what">Our neural method is three times faster per ray, but 29% slower per image against path tracing. Stopping the exact trace after 16 reflections beats our neural method on both cost and visual quality.</span><span class="res">H3 · for this implementation</span></div>
+<div class="verdict"><span class="name">↳ Cost</span><span class="what">Our neural method is three times faster per ray, but 29% slower per image against path tracing.</span><span class="res">H3 · for this implementation</span></div>
 </div>
 
 <p class="limits">Limits. One lighting rig, simplified meshes, a CPU renderer, and image scores from one front view of each diamond.</p>
