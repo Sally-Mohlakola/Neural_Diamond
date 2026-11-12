@@ -869,7 +869,7 @@ td { color: var(--grey); }
       use: 'It shortens paths but still traces them. Our operator replaces the inside of the stone instead.' },
     { id: 10, n: 10, short: 'Importance sampling', group: 'transport', who: 'Müller et al., 2019', title: 'Neural importance sampling',
       what: 'Learns where to send each new ray, which lowers noise for the same number of samples.',
-      use: 'It guides paths rather than replacing them. Together with radiance caching, it marks what learned path tracing already does.' },
+      use: 'It uses a network to choose the direction of each new ray, but the path is still traced. With radiance caching, it shows that earlier learned methods assist the path tracer, while our operator replaces the path inside the diamond.' },
     { id: 11, n: 11, short: 'Rendering diamonds', group: 'gems', who: 'Sun, Fracchia and Drew, 2000', title: 'Rendering diamonds',
       what: 'Renders diamonds with Fresnel reflection, absorption and dispersion.',
       use: 'It sets out what an exact diamond renderer must model: Fresnel reflection, absorption, and the dispersion that produces fire.' },
