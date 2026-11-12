@@ -357,6 +357,7 @@ td { color: var(--grey); }
   .arch .archimg { display: block; margin: 4px auto 0; max-width: 420px; }
   .arch .scroll, .arch .choose, .arch .hint { display: none; }
 }
+.difftag { position: absolute; left: 10px; top: 10px; z-index: 3; font-size: 13px; padding: 3px 8px; border-radius: 999px; background: rgba(0,0,0,.7); color: #f2f2f2; pointer-events: none; }
 </style>
 </head>
 <body>
@@ -393,7 +394,7 @@ td { color: var(--grey); }
 </article>
 <article class="tile">
 <div class="bar"><span>↱ Step 2 · LEAN-inspired spread</span><span>Sep</span></div>
-<div class="media"><video preload="none" src="media/anim/gia_lean_diff.mp4?v=2" autoplay muted loop playsinline aria-label="Rolling diamond with the LEAN-inspired spread, speckle isolated: the shading dimmed and the scattered speckles brightened"></video></div>
+<div class="media" style="position: relative"><span class="difftag">speckle isolated</span><video preload="none" src="media/anim/gia_lean_diff.mp4?v=2" autoplay muted loop playsinline aria-label="Rolling diamond with the LEAN-inspired spread, speckle isolated: the shading dimmed and the scattered speckles brightened"></video></div>
 <h3>The spread</h3>
 <p>We gave back each bin in a radiance distribution map its coefficient of variation. The sparkle returns, but in random places.</p>
 </article>
