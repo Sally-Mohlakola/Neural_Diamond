@@ -330,6 +330,12 @@ td { color: var(--grey); }
 .rig-read i.add { background: #c0392b; } .rig-read i.miss { background: #2f7fc1; margin-left: 10px; }
 @media (max-width: 860px) { .rig-read { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (prefers-reduced-motion: reduce) { .rig-view .cell { transition: none; } }
+.say strong { color: var(--white); font-weight: 400; }
+.say .q { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: .18em; }
+.archkey { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px 22px; margin: 14px 0 4px; font-size: 17px; color: var(--white); }
+.archkey span { display: inline-flex; align-items: center; gap: 9px; }
+.archkey i { width: 16px; height: 16px; border-radius: 4px; display: inline-block; }
+.archkey i.dash { width: 26px; height: 0; border-radius: 0; border-top: 2px dashed #9aa3ad; }
 </style>
 </head>
 <body>
@@ -354,7 +360,7 @@ td { color: var(--grey); }
 <a class="row" href="#decoders"><span>↳ Three decoders</span><span class="r">45 trained runs ↵</span></a>
 </nav>
 
-<p class="say">We ask whether a neural network can learn <span class="hi">light transport inside a diamond</span>. The neural network learns, and its deterministic decoders pick the correct exit facet <span class="hi">more often than the stochastic decoder</span>. But whether their diamonds matched the reference better <span class="hi">depends on how we measured it</span>.</p>
+<p class="say">We ask whether a neural network can learn <span class="hi">light transport inside a diamond</span>. The answer of which neural diamonds match the reference better <span class="hi">depends on how we measured it</span>.</p>
 
 <div class="head" id="journey"><span class="tiny">[ the journey ]</span><h2>Three attempts</h2></div>
 <div class="bento three">
@@ -362,19 +368,19 @@ td { color: var(--grey); }
 <div class="bar"><span>↱ Step 1 · radiance map</span><span>Aug</span></div>
 <div class="media"><video preload="none" src="media/anim/gia_rdm_exp.mp4?v=8" autoplay muted loop playsinline aria-label="Rolling diamond rendered with the radiance map: flat, blocky shading"></video></div>
 <h3>The average</h3>
-<p>The cloth model’s map keeps one answer per incoming direction. In a diamond, rays entering different facets aggregate it, so the shading goes flat. Sampling more rays did not help.</p>
+<p>The cloth model’s map keeps one answer per incoming direction. The shading goes flat.</p>
 </article>
 <article class="tile">
 <div class="bar"><span>↱ Step 2 · LEAN-inspired spread</span><span>Sep</span></div>
 <div class="media"><video preload="none" src="media/anim/gia_lean.mp4?v=8" autoplay muted loop playsinline aria-label="Rolling diamond with the LEAN-inspired spread: scattered speckles"></video></div>
 <h3>The spread</h3>
-<p>Each bin in the radiance distribution map stores an average, so we gave back its coefficient of variation. The sparkle returns, but in random places.</p>
+<p>We gave back each bin in a radiance distribution map its coefficient of variation. The sparkle returns, but in random places.</p>
 </article>
 <article class="tile">
 <div class="bar"><span>↱ Step 3 · neural transport operator</span><span>Sep – Oct</span></div>
 <div class="media"><video preload="none" src="media/anim/gia_deep_truefacet.mp4?v=8" autoplay muted loop playsinline aria-label="GIA brilliant rolling, rendered by the deep decoder given the true exit facet"></video></div>
 <h3>The position</h3>
-<p>A network that knows where light enters, and predicts where it leaves. Shown here at its best is the deep decoder given the true exit facet for its predictions.</p>
+<p>Shown here at its best is the deep decoder given the true exit facet for its predictions.</p>
 </article>
 </div>
 
@@ -387,19 +393,28 @@ td { color: var(--grey); }
 <button type="button" class="reset" id="archReset" hidden>↺ Reset</button>
 </div>
 <div class="scroll"><svg id="archSvg" viewBox="0 0 1260 540" role="group" aria-label="The neural transport operator. Each block can be selected to read what it does."></svg></div>
+<div class="archkey" aria-label="Colour key">
+<span><i style="background:#5b6672"></i>exact path tracing</span>
+<span><i style="background:#22917f"></i>network input</span>
+<span><i style="background:#6552b5"></i>shared network</span>
+<span><i style="background:#b4c2ff"></i>stochastic</span>
+<span><i style="background:#f5cf92"></i>clone</span>
+<span><i style="background:#ffb1c1"></i>deep</span>
+<span><i class="dash"></i>exit ray returns to the path tracer</span>
+</div>
 <p class="hint">Tap or hover over any block to read what it does. Tap empty space, or Reset, to start again.</p>
 <div class="info" aria-live="polite"><div><h3 id="archTitle">The neural transport operator</h3><span class="tag" id="archTag">overview</span></div><p id="archText">The first surface is traced exactly. Inside the diamond, a network takes over. It decides whether the light escapes, through which facet, and where on that facet it leaves. The exit ray then goes back to the path tracer.</p></div>
 </div>
 <div class="head" id="papers"><span class="tiny">[ 26 references ]</span><h2>How the papers connect</h2></div>
-<p class="say" style="margin-top: 40px">No published paper was found to render a diamond with a neural method. But each one of the below papers gave us <span class="hi">a piece</span>. A model to start from, a tool to build with, or a way to measure the result.</p>
+<p class="say" style="margin-top: 40px"><strong>No published paper</strong> was found to render a diamond with a neural method. But each one of the below papers gave us <span class="hi">a piece of the puzzle</span>.</p>
 <div class="legend" id="webLegend" role="group" aria-label="Highlight one group of papers"></div>
 <div class="web" id="web">
 <div class="canvas"><svg id="webPulse" aria-hidden="true"></svg><svg id="webSvg" role="group" aria-label="A web of the 26 references. Select a paper to read what it does and how it connects."></svg></div>
 <aside class="side" id="webSide" aria-live="polite"></aside>
 </div>
-<p class="hint tiny" style="text-align: center; margin-top: 10px">Tap a paper to read it, drag to move it, and tap a link in the panel to jump along the web.</p>
+<p class="hint tiny" style="text-align: center; margin-top: 10px">Tap a paper to read about it, drag to move it, and tap a link in the panel to jump along the web.</p>
 
-<p class="say" id="decoders">All three decoders learn from the same data, but each <span class="hi">places the exit differently</span>. The stochastic decoder spreads its bets, while the clone and the deep decoder commit to a single answer.</p>
+<p class="say" id="decoders">All three decoders learn from the same data, but each <span class="hi">places the exit differently</span>. The stochastic decoder <strong>spreads its bets</strong>, while the clone and the deep decoder <strong>commit</strong> to a single answer.</p>
 <div class="choose" role="group" aria-label="Choose the diamond for the animations">
 <button type="button" data-anim="gia" aria-pressed="true">GIA brilliant</button>
 <button type="button" data-anim="pear" aria-pressed="false">Pear brilliant</button>
@@ -466,9 +481,9 @@ td { color: var(--grey); }
 <p class="tiny">Mean of five training runs, scored against the reference.</p>
 </div>
 </div>
-<p class="say">So why do the metrics above disagree? Pixel correlation penalises a misplaced highlight <span class="hi">twice</span>, once where it lands and once where it should have been, so blurring pays. LPIPS rewards <span class="hi">sharp facets</span>, even displaced ones.</p>
+<p class="say"><span class="q">So why do the metrics above disagree?</span> Pearson’s pixel correlation penalises misplaced highlights, so blurring pays. But LPIPS rewards <span class="hi">sharp facets</span>, even displaced ones.</p>
 
-<p class="say" id="transfer">Do our results transfer to a new diamond? Shading a different diamond cut without retraining, the deep decoder <span class="hi">keeps the old diamond's routes and surface normals</span>.<span class="gap"></span>Therefore, it adds light almost everywhere onto the diamond but misplaces the bright reflections.</p>
+<p class="say" id="transfer"><span class="q">Do our results transfer to a new diamond?</span> Shading a different diamond cut without retraining, the deep decoder <span class="hi">keeps the old diamond's routes and surface normals</span>.<span class="gap"></span>Therefore, it adds light almost everywhere onto the diamond but misplaces the bright reflections.</p>
 <div class="rig" id="rig">
 <div class="rig-ctl">
 <div class="choose" role="group" aria-label="Choose the transfer">
@@ -500,7 +515,7 @@ td { color: var(--grey); }
 <div class="rows">
 <div class="verdict"><span class="name">↳ Accuracy is not appearance</span><span class="what">Under Pearson’s pixel correlation, the deterministic decoders that pick the exit facet most often receive the lowest scores. But under LPIPS, this order reverses.</span><span class="res">H1 · under pixel correlation</span></div>
 <div class="verdict"><span class="name">↳ Where errors arise</span><span class="what">Longer ray paths receive higher exit-ray prediction errors. The pavilion fails only when training never reaches it.</span><span class="res">H2 · in part</span></div>
-<div class="verdict"><span class="name">↳ Cost</span><span class="what">Our neural method is three times faster per ray, but 29% slower per image against path tracing.</span><span class="res">H3 · for this implementation</span></div>
+<div class="verdict"><span class="name">↳ Cost</span><span class="what">Our neural method is three times faster per ray, but 29% slower per image against path tracing because of pipeline setup costs.</span><span class="res">H3 · for this implementation</span></div>
 </div>
 
 <p class="limits">Limits. One lighting rig, simplified meshes, a CPU renderer, and image scores from one front view of each diamond.</p>
@@ -544,7 +559,7 @@ td { color: var(--grey); }
   };
   var cutNames = { gia: 'GIA brilliant', pear: 'Pear brilliant', step: 'step cut' };
   var notes = {
-    stochastic: 'The stochastic decoder spreads its bets across several exits. Light lands roughly in the correct places, but blurred. It agrees best under pixel correlation.',
+    stochastic: 'The stochastic decoder is more blurry, and agrees best under Pearson’s pixel correlation.',
     clone: 'The clone commits to one exit. Real contrast appears, but in the wrong places, so pixel correlation drops.',
     deep: 'The deep decoder has more capacity, yet still commits to one exit. Its flashes are sharp but mostly misplaced. It scores best under LPIPS.'
   };
@@ -789,7 +804,7 @@ td { color: var(--grey); }
       edgeEls[key] = el('path', { d: d, class: 'edge' + (key === 'exit-camera' ? ' back' : ''), 'marker-end': 'url(#archArrow)' }, layer);
     });
     var note = el('text', { x: L.label[0], y: L.label[1], 'text-anchor': 'middle', fill: '#5d5d61', 'font-size': 13, 'font-family': 'Hanken Grotesk, sans-serif' }, svg);
-    note.textContent = m === 'wide' ? 'grey: exact path tracing · green: network input · violet: shared network · decoders in their own colours · dashed: the exit ray returns to the path tracer' : 'dashed: the exit ray returns to the path tracer';
+    note.textContent = '';
     Object.keys(R).forEach(function (id) {
       var n = R[id], d = info[id];
       var g = el('g', { class: 'node', tabindex: 0, role: 'button', 'aria-label': d.lab + ', ' + d.sub }, svg);
