@@ -279,18 +279,24 @@ td { color: var(--grey); }
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
 
 /* ===== revitalised layer: motion, light and depth (all optional, respects reduced motion) ===== */
-:root { --amber: #f2a93b; --steel: #b9bec6; --mono: ui-monospace, 'JetBrains Mono', SFMono-Regular, Menlo, Consolas, monospace;
-  --spec: repeating-linear-gradient(-45deg, var(--amber) 0 8px, #141414 8px 16px); }
+:root { --amber: #d4952f; --steel: #8f949a; --rust: #7a4a22; --mono: ui-monospace, 'JetBrains Mono', SFMono-Regular, Menlo, Consolas, monospace;
+  --spec: repeating-linear-gradient(-45deg, var(--amber) 0 8px, #141210 8px 16px); }
 body { background:
-  radial-gradient(1200px 800px at 50% 0%, transparent 0%, #000 75%) fixed,
-  linear-gradient(rgba(255,255,255,.035) 1px, transparent 1px) 0 0 / 200px 200px fixed,
-  linear-gradient(90deg, rgba(255,255,255,.035) 1px, transparent 1px) 0 0 / 200px 200px fixed,
-  linear-gradient(rgba(255,255,255,.015) 1px, transparent 1px) 0 0 / 40px 40px fixed,
-  linear-gradient(90deg, rgba(255,255,255,.015) 1px, transparent 1px) 0 0 / 40px 40px fixed, #050505; }
+  radial-gradient(1300px 900px at 50% 10%, transparent 0%, rgba(0,0,0,.85) 80%) fixed,
+  linear-gradient(rgba(7,6,5,.72), rgba(7,6,5,.72)) fixed,
+  url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='900' height='900'%3E%3Cfilter id='s'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.006' numOctaves='4' seed='7'/%3E%3CfeColorMatrix values='0 0 0 0 .32 0 0 0 0 .22 0 0 0 0 .12 0 0 0 -2.6 1.25'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23s)'/%3E%3C/svg%3E") 0 0 / 900px 900px fixed,
+  url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .5 0 0 0 0 .45 0 0 0 0 .4 0 0 0 .55 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E") 0 0 / 220px 220px fixed,
+  #070605; }
+/* film grain that crawls over everything, like dust on a lens */
+body::after { content: ''; position: fixed; inset: -50%; z-index: 70; pointer-events: none; opacity: .07;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .5 0 0 0 0 .45 0 0 0 0 .4 0 0 0 .55 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E") 0 0 / 180px 180px; animation: grain .9s steps(6) infinite; mix-blend-mode: overlay; }
+@keyframes grain { 0% { transform: translate(0, 0); } 20% { transform: translate(-3%, 2%); } 40% { transform: translate(2%, -4%); }
+  60% { transform: translate(-4%, -1%); } 80% { transform: translate(3%, 3%); } 100% { transform: translate(0, 0); } }
 #ambient { position: fixed; inset: 0; z-index: -1; pointer-events: none; }
 .progress { position: fixed; top: 0; left: 0; right: 0; height: 4px; z-index: 60; transform-origin: 0 50%; transform: scaleX(0);
-  background: var(--spec); background-size: 22.6px 22.6px; animation: specshift 1.2s linear infinite; }
-@keyframes specshift { to { background-position: 22.6px 0; } }
+  background: url(media/wear.png?v=8) 0 0 / 120px, url(media/wear.png?v=8) 60px 40px / 90px, var(--spec); background-size: 120px, 90px, 22.6px 22.6px;
+  animation: specshift 1.2s linear infinite; filter: saturate(.8) contrast(1.05); }
+@keyframes specshift { to { background-position: 0 0, 60px 40px, 22.6px 0; } }
 
 /* sticky glass header with a live section marker */
 .top { position: sticky; top: 0; z-index: 50; margin: 0 -16px; padding: 12px 16px;
@@ -305,9 +311,9 @@ body { background:
 .top nav a.on { color: var(--amber); }
 
 /* hero: light sweeps across the title, the diamond follows the cursor */
-.hero { background: var(--black);
+.hero { background: radial-gradient(circle at 50% 52%, #000 0 30%, rgba(0,0,0,0) 58%), url(media/wear.png?v=8) 0 0 / 300px, #000; border-color: #2b2722;
   box-shadow: inset 0 0 120px rgba(0, 0, 0, .9); }
-.hero h1 { background: linear-gradient(100deg, #cfd3d8 0%, #e9ecef 30%, #8d939b 40%, #ffffff 50%, #8d939b 58%, #e9ecef 70%, #cfd3d8 100%);
+.hero h1 { background: linear-gradient(100deg, #a9a59d 0%, #d6d2c9 30%, #6f6b64 40%, #f3efe6 50%, #6f6b64 58%, #d6d2c9 70%, #a9a59d 100%);
   background-size: 250% 100%; -webkit-background-clip: text; background-clip: text; color: transparent; animation: sheen 7s ease-in-out infinite; }
 @keyframes sheen { 0%, 15% { background-position: 120% 0; } 60%, 100% { background-position: -30% 0; } }
 .hero .obj { transition: transform .6s cubic-bezier(.2, .7, .2, 1); }
@@ -319,10 +325,11 @@ body { background:
 /* section headings: numbered, with a spectral rule that draws in */
 .head h2 { position: relative; display: inline-block; padding-bottom: 18px; }
 .head h2::after { content: ''; position: absolute; left: 50%; bottom: 0; width: 96px; height: 6px; margin-left: -48px; border-radius: 0;
-  background: var(--spec); background-size: 22.6px 22.6px; animation: specshift 1.2s linear infinite; transform: scaleX(0); transition: transform .9s cubic-bezier(.2, .7, .2, 1) .2s; }
+  background: url(media/wear.png?v=8) 0 0 / 70px, var(--spec); background-size: 70px, 22.6px 22.6px; animation: specshift 1.2s linear infinite; transform: scaleX(0);
+  filter: url(#rough); transition: transform .9s cubic-bezier(.2, .7, .2, 1) .2s; }
 .head.in h2::after { transform: scaleX(1); }
 .head .tiny { font-family: var(--mono); text-transform: uppercase; letter-spacing: .12em; font-size: 13px; }
-.head .tiny .idx { color: #000; background: var(--amber); padding: 2px 7px; margin-right: 10px; font-weight: 600; }
+.head .tiny .idx { color: #0c0a08; background: url(media/wear.png?v=8) 0 0 / 60px, var(--amber); padding: 3px 8px; margin-right: 10px; font-weight: 700; filter: url(#rough); }
 
 /* statements: the key phrases light up as they arrive */
 .say .hi { background: linear-gradient(90deg, var(--amber), var(--amber)) no-repeat 0 100% / 0 2px; transition: background-size 1s cubic-bezier(.2, .7, .2, 1) .35s, color .6s; }
@@ -331,10 +338,10 @@ body { background:
 /* cards: a soft light follows the cursor across the surface */
 .tile, .panel, .arch, .fact, .web { position: relative; isolation: isolate; }
 .glow::before { content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; z-index: 2; opacity: 0; transition: opacity .3s;
-  background: radial-gradient(380px circle at var(--gx, 50%) var(--gy, 50%), rgba(255, 255, 255, .07), transparent 60%); }
+  background: radial-gradient(380px circle at var(--gx, 50%) var(--gy, 50%), rgba(255, 214, 150, .06), transparent 60%); }
 .glow:hover::before { opacity: 1; }
 .glow::after { content: ''; position: absolute; inset: -1px; border-radius: inherit; pointer-events: none; z-index: 2; padding: 1px; opacity: 0; transition: opacity .3s;
-  background: radial-gradient(260px circle at var(--gx, 50%) var(--gy, 50%), rgba(242, 169, 59, .6), transparent 65%);
+  background: radial-gradient(260px circle at var(--gx, 50%) var(--gy, 50%), rgba(212, 149, 47, .45), transparent 65%);
   -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask-composite: exclude; }
 .glow:hover::after { opacity: 1; }
 .bento.three .tile { transition: transform .35s cubic-bezier(.2, .7, .2, 1), border-color .3s; }
@@ -348,8 +355,18 @@ body { background:
 .nums .v.tick { color: var(--amber); }
 .nums .tiny, .tile .bar, .reel .caps, .legal { font-family: var(--mono); text-transform: uppercase; letter-spacing: .06em; font-size: 12px; }
 
-.tile, .panel, .arch, .web { background-image: linear-gradient(var(--steel), var(--steel)), linear-gradient(var(--steel), var(--steel)), linear-gradient(var(--steel), var(--steel)), linear-gradient(var(--steel), var(--steel));
-  background-repeat: no-repeat; background-size: 12px 1px, 1px 12px, 12px 1px, 1px 12px; background-position: 8px 8px, 8px 8px, calc(100% - 8px) calc(100% - 8px), calc(100% - 8px) calc(100% - 8px); background-color: var(--tile); }
+/* rivets: a lit dome with a shadow under it, one in each corner */
+.tile, .panel, .arch, .web, .rig, .cite {
+  --rivet: radial-gradient(circle at 35% 35%, #c9c4bb 0 1px, #7d776e 1.6px, #2c2925 3px, rgba(0,0,0,.6) 3.6px, transparent 4.4px);
+  background-image: var(--rivet), var(--rivet), var(--rivet), var(--rivet),
+    url(media/wear.png?v=8), url(media/wear.png?v=8),
+    radial-gradient(120% 90% at 0% 0%, rgba(122, 74, 34, .10), transparent 55%),
+    radial-gradient(90% 70% at 100% 100%, rgba(0, 0, 0, .45), transparent 60%),
+    linear-gradient(180deg, #15130f, #0b0a09);
+  background-repeat: no-repeat, no-repeat, no-repeat, no-repeat, repeat, repeat, no-repeat, no-repeat, no-repeat;
+  background-size: 10px 10px, 10px 10px, 10px 10px, 10px 10px, 256px, 180px, 100% 100%, 100% 100%, 100% 100%;
+  background-position: 6px 6px, calc(100% - 6px) 6px, 6px calc(100% - 6px), calc(100% - 6px) calc(100% - 6px), 0 0, 90px 130px, 0 0, 0 0, 0 0;
+  border-color: #2b2722; box-shadow: inset 0 1px 0 rgba(255, 255, 255, .04), inset 0 -2px 6px rgba(0, 0, 0, .6), 0 10px 26px rgba(0, 0, 0, .55); }
 .cite pre { font-family: var(--mono); }
 /* scroll reveal: only when scripting runs, so nothing is ever hidden without it */
 .js .rv { opacity: 0; transform: translateY(28px); transition: opacity .9s cubic-bezier(.2, .7, .2, 1), transform .9s cubic-bezier(.2, .7, .2, 1); transition-delay: var(--d, 0s); }
@@ -369,6 +386,7 @@ body { background:
 .totop:hover { border-color: #8c8c90; }
 
 @media (prefers-reduced-motion: reduce) {
+  body::after { animation: none; }
   .progress, .head h2::after, .hero h1, .hero .scrollcue::after { animation: none; }
   .hero h1 { background: none; color: var(--white); }
   .js .rv { opacity: 1; transform: none; transition: none; }
@@ -383,8 +401,7 @@ body { background:
 .rig-stage { display: grid; gap: 12px; justify-items: center; }
 .rig-view { position: relative; width: min(560px, 100%); aspect-ratio: 1; border-radius: 6px; overflow: hidden; background: #2b2a30; --cut: 50%;
   cursor: ew-resize; touch-action: none; user-select: none; box-shadow: 0 0 0 1px #3a3a40, 0 30px 60px rgba(0, 0, 0, .6); }
-.rig-view .cell { position: absolute; inset: 0; background-image: url(media/graphs/transfer_deep.png?v=8); background-repeat: no-repeat;
-  background-size: 400% 229.17%; transition: opacity .5s ease; }
+.rig-view .cell { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transition: opacity .5s ease; }
 .rig-view .over { clip-path: inset(0 0 0 var(--cut)); }
 .rig-view .err { opacity: 0; mix-blend-mode: normal; }
 .rig.showerr .rig-view .err { opacity: 1; }
@@ -418,6 +435,7 @@ body { background:
 </style>
 </head>
 <body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><filter id="rough"><feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" seed="3"/><feDisplacementMap in="SourceGraphic" scale="2.2"/></filter></svg>
 <div class="wrap">
 
 <header class="top">
@@ -564,9 +582,9 @@ body { background:
 </div>
 <div class="rig-stage">
 <div class="rig-view" id="rigView" role="img" aria-label="Deep decoder render of the pear brilliant: trained on this cut on the left, transferred from the GIA brilliant on the right">
-<div class="cell base" id="rigBase"></div>
-<div class="cell over" id="rigOver"></div>
-<div class="cell err" id="rigErrCell"></div>
+<video class="cell base" id="rigBase" muted loop playsinline preload="auto" src="media/anim/transfer_gia_to_pear_own.mp4?v=9"></video>
+<video class="cell over" id="rigOver" muted loop playsinline preload="auto" src="media/anim/transfer_gia_to_pear_moved.mp4?v=9"></video>
+<video class="cell err" id="rigErrCell" muted loop playsinline preload="auto" src="media/anim/transfer_gia_to_pear_err.mp4?v=9"></video>
 <div class="beam" aria-hidden="true"></div>
 <div class="cut" aria-hidden="true"><span></span></div>
 <span class="stamp l" id="rigL">trained on this cut</span>
@@ -1556,7 +1574,7 @@ body { background:
   if (still) return;
   var cv = document.createElement('canvas'); cv.id = 'ambient'; document.body.insertBefore(cv, document.body.firstChild);
   var cx = cv.getContext('2d'), W, H, dpr = Math.min(2, devicePixelRatio || 1), pts = [];
-  var hues = ['242,169,59', '255,200,120', '185,190,198', '255,255,255'];
+  var hues = ['255,150,40', '255,190,90', '255,120,30', '255,230,180'];
   function size() { W = cv.width = innerWidth * dpr; H = cv.height = innerHeight * dpr; cv.style.width = innerWidth + 'px'; cv.style.height = innerHeight + 'px'; }
   size(); addEventListener('resize', size);
   var count = Math.round(Math.min(40, innerWidth / 36));
@@ -1590,20 +1608,27 @@ body { background:
 <script>
 (function () {
   var rig = document.getElementById('rig'); if (!rig) return;
-  // panel origins inside the composite figure (768 x 440 px, each panel 192 px)
-  var COLS = [74, 308, 542], ROWS = [47, 243];
-  function pos(c, r) { return (COLS[c] / (768 - 192) * 100).toFixed(3) + '% ' + (ROWS[r] / (440 - 192) * 100).toFixed(3) + '%'; }
   var sets = [
-    { spec: 'pear brilliant', from: 'GIA brilliant' },
-    { spec: 'step cut', from: 'pear brilliant' }
+    { key: 'gia_to_pear', spec: 'pear brilliant', from: 'GIA brilliant' },
+    { key: 'pear_to_step', spec: 'step cut', from: 'pear brilliant' }
   ];
   var view = document.getElementById('rigView'), base = document.getElementById('rigBase'), over = document.getElementById('rigOver'), err = document.getElementById('rigErrCell');
-  var wipe = document.getElementById('rigWipe');
+  var vids = [base, over, err], wipe = document.getElementById('rigWipe');
+  var still = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   function scan() { view.classList.remove('scan'); void view.offsetWidth; view.classList.add('scan'); }
+  function playAll() { if (still) return; vids.forEach(function (v) { var p = v.play(); if (p) p.catch(function () {}); }); }
+  // keep the transferred render and the error map on the same frame as the trained one
+  setInterval(function () {
+    if (base.paused) return;
+    [over, err].forEach(function (v) { if (Math.abs(v.currentTime - base.currentTime) > .04) v.currentTime = base.currentTime; });
+  }, 250);
   function load(i) {
-    base.style.backgroundPosition = pos(0, i); over.style.backgroundPosition = pos(1, i); err.style.backgroundPosition = pos(2, i);
+    var k = sets[i].key;
+    base.src = 'media/anim/transfer_' + k + '_own.mp4?v=9'; over.src = 'media/anim/transfer_' + k + '_moved.mp4?v=9'; err.src = 'media/anim/transfer_' + k + '_err.mp4?v=9';
+    vids.forEach(function (v) { v.currentTime = 0; });
+    playAll();
     document.getElementById('rigSpec').textContent = sets[i].spec; document.getElementById('rigFrom').textContent = sets[i].from;
-    view.setAttribute('aria-label', 'Deep decoder render of the ' + sets[i].spec + ': trained on this cut on the left, transferred from the ' + sets[i].from + ' on the right');
+    view.setAttribute('aria-label', 'Deep decoder render of the ' + sets[i].spec + ' rolling: trained on this cut on the left, transferred from the ' + sets[i].from + ' on the right');
     scan();
   }
   rig.querySelectorAll('[data-tr]').forEach(function (b) {
@@ -1618,10 +1643,10 @@ body { background:
   function drag(ev) { var r = view.getBoundingClientRect(); var v = Math.max(0, Math.min(100, (ev.clientX - r.left) / r.width * 100)); wipe.value = v; set(v); }
   view.addEventListener('pointerdown', function (ev) { view.setPointerCapture(ev.pointerId); drag(ev); view.onpointermove = drag; });
   view.addEventListener('pointerup', function () { view.onpointermove = null; });
-  load(0);
-  // scan once when it first scrolls into view
+  document.getElementById('rigSpec').textContent = sets[0].spec;
+  // play and scan once when it first scrolls into view
   if ('IntersectionObserver' in window) {
-    var io = new IntersectionObserver(function (es) { if (es[0].isIntersecting) { scan(); io.disconnect(); } }, { threshold: .4 });
+    var io = new IntersectionObserver(function (es) { if (es[0].isIntersecting) { playAll(); scan(); io.disconnect(); } }, { threshold: .4 });
     io.observe(view);
   }
 })();
