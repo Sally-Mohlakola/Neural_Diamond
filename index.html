@@ -277,6 +277,144 @@ td { color: var(--grey); }
   .hero .obj { width: 78vw; }
 }
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+
+/* ===== revitalised layer: motion, light and depth (all optional, respects reduced motion) ===== */
+:root { --amber: #f2a93b; --steel: #b9bec6; --mono: ui-monospace, 'JetBrains Mono', SFMono-Regular, Menlo, Consolas, monospace;
+  --spec: repeating-linear-gradient(-45deg, var(--amber) 0 8px, #141414 8px 16px); }
+body { background:
+  radial-gradient(1200px 800px at 50% 0%, transparent 0%, #000 75%) fixed,
+  linear-gradient(rgba(255,255,255,.035) 1px, transparent 1px) 0 0 / 200px 200px fixed,
+  linear-gradient(90deg, rgba(255,255,255,.035) 1px, transparent 1px) 0 0 / 200px 200px fixed,
+  linear-gradient(rgba(255,255,255,.015) 1px, transparent 1px) 0 0 / 40px 40px fixed,
+  linear-gradient(90deg, rgba(255,255,255,.015) 1px, transparent 1px) 0 0 / 40px 40px fixed, #050505; }
+#ambient { position: fixed; inset: 0; z-index: -1; pointer-events: none; }
+.progress { position: fixed; top: 0; left: 0; right: 0; height: 4px; z-index: 60; transform-origin: 0 50%; transform: scaleX(0);
+  background: var(--spec); background-size: 22.6px 22.6px; animation: specshift 1.2s linear infinite; }
+@keyframes specshift { to { background-position: 22.6px 0; } }
+
+/* sticky glass header with a live section marker */
+.top { position: sticky; top: 0; z-index: 50; margin: 0 -16px; padding: 12px 16px;
+  background: rgba(0, 0, 0, .55); backdrop-filter: blur(14px) saturate(140%); -webkit-backdrop-filter: blur(14px) saturate(140%);
+  border-bottom: 1px solid transparent; transition: border-color .3s, background .3s; }
+.top.scrolled { border-bottom-color: var(--line); background: rgba(6, 6, 9, .72); }
+.top nav a { position: relative; transition: color .2s; }
+.top nav a { font-family: var(--mono); font-size: 13px; text-transform: uppercase; letter-spacing: .08em; }
+.top nav a::after { content: ''; position: absolute; left: 0; right: 0; bottom: 4px; height: 2px; background: var(--amber);
+  transform: scaleX(0); transform-origin: 0 50%; transition: transform .35s ease; }
+.top nav a:hover::after, .top nav a.on::after { transform: scaleX(1); }
+.top nav a.on { color: var(--amber); }
+
+/* hero: light sweeps across the title, the diamond follows the cursor */
+.hero { background: var(--black);
+  box-shadow: inset 0 0 120px rgba(0, 0, 0, .9); }
+.hero h1 { background: linear-gradient(100deg, #cfd3d8 0%, #e9ecef 30%, #8d939b 40%, #ffffff 50%, #8d939b 58%, #e9ecef 70%, #cfd3d8 100%);
+  background-size: 250% 100%; -webkit-background-clip: text; background-clip: text; color: transparent; animation: sheen 7s ease-in-out infinite; }
+@keyframes sheen { 0%, 15% { background-position: 120% 0; } 60%, 100% { background-position: -30% 0; } }
+.hero .obj { transition: transform .6s cubic-bezier(.2, .7, .2, 1); }
+.hero .scrollcue { position: absolute; z-index: 3; bottom: 92px; left: 50%; width: 1px; height: 46px; background: linear-gradient(#fff0, #fff8);
+  transform: translateX(-50%); overflow: hidden; }
+.hero .scrollcue::after { content: ''; position: absolute; left: 0; top: -40%; width: 1px; height: 40%; background: #fff; animation: cue 2.2s ease-in-out infinite; }
+@keyframes cue { to { top: 110%; } }
+
+/* section headings: numbered, with a spectral rule that draws in */
+.head h2 { position: relative; display: inline-block; padding-bottom: 18px; }
+.head h2::after { content: ''; position: absolute; left: 50%; bottom: 0; width: 96px; height: 6px; margin-left: -48px; border-radius: 0;
+  background: var(--spec); background-size: 22.6px 22.6px; animation: specshift 1.2s linear infinite; transform: scaleX(0); transition: transform .9s cubic-bezier(.2, .7, .2, 1) .2s; }
+.head.in h2::after { transform: scaleX(1); }
+.head .tiny { font-family: var(--mono); text-transform: uppercase; letter-spacing: .12em; font-size: 13px; }
+.head .tiny .idx { color: #000; background: var(--amber); padding: 2px 7px; margin-right: 10px; font-weight: 600; }
+
+/* statements: the key phrases light up as they arrive */
+.say .hi { background: linear-gradient(90deg, var(--amber), var(--amber)) no-repeat 0 100% / 0 2px; transition: background-size 1s cubic-bezier(.2, .7, .2, 1) .35s, color .6s; }
+.say.in .hi { background-size: 100% 2px; }
+
+/* cards: a soft light follows the cursor across the surface */
+.tile, .panel, .arch, .fact, .web { position: relative; isolation: isolate; }
+.glow::before { content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; z-index: 2; opacity: 0; transition: opacity .3s;
+  background: radial-gradient(380px circle at var(--gx, 50%) var(--gy, 50%), rgba(255, 255, 255, .07), transparent 60%); }
+.glow:hover::before { opacity: 1; }
+.glow::after { content: ''; position: absolute; inset: -1px; border-radius: inherit; pointer-events: none; z-index: 2; padding: 1px; opacity: 0; transition: opacity .3s;
+  background: radial-gradient(260px circle at var(--gx, 50%) var(--gy, 50%), rgba(242, 169, 59, .6), transparent 65%);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask-composite: exclude; }
+.glow:hover::after { opacity: 1; }
+.bento.three .tile { transition: transform .35s cubic-bezier(.2, .7, .2, 1), border-color .3s; }
+.bento.three .tile:hover { transform: translateY(-6px); border-color: #3a3a40; }
+.tile .media video { transition: transform .8s cubic-bezier(.2, .7, .2, 1); }
+.bento.three .tile:hover .media video { transform: scale(1.04); }
+.choose button { transition: color .2s, background .2s, border-color .2s, transform .15s; }
+.choose button:hover { border-color: #55555a; color: var(--white); }
+.choose button:active { transform: scale(.96); }
+.nums .v { transition: color .3s; }
+.nums .v.tick { color: var(--amber); }
+.nums .tiny, .tile .bar, .reel .caps, .legal { font-family: var(--mono); text-transform: uppercase; letter-spacing: .06em; font-size: 12px; }
+
+.tile, .panel, .arch, .web { background-image: linear-gradient(var(--steel), var(--steel)), linear-gradient(var(--steel), var(--steel)), linear-gradient(var(--steel), var(--steel)), linear-gradient(var(--steel), var(--steel));
+  background-repeat: no-repeat; background-size: 12px 1px, 1px 12px, 12px 1px, 1px 12px; background-position: 8px 8px, 8px 8px, calc(100% - 8px) calc(100% - 8px), calc(100% - 8px) calc(100% - 8px); background-color: var(--tile); }
+.cite pre { font-family: var(--mono); }
+/* scroll reveal: only when scripting runs, so nothing is ever hidden without it */
+.js .rv { opacity: 0; transform: translateY(28px); transition: opacity .9s cubic-bezier(.2, .7, .2, 1), transform .9s cubic-bezier(.2, .7, .2, 1); transition-delay: var(--d, 0s); }
+.js .rv.in { opacity: 1; transform: none; }
+
+/* citation block */
+.cite { margin-top: 14px; border: 1px solid var(--line); border-radius: 18px; background: var(--tile); padding: 18px 20px; display: grid; gap: 10px; }
+.cite .bar { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.cite pre { margin: 0; font: 400 14px/1.55 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color: var(--grey); white-space: pre-wrap; word-break: break-word; }
+.cite button { font: 300 14px var(--font); color: var(--white); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 8px 16px; min-height: 40px; cursor: pointer; }
+.cite button:hover { border-color: #55555a; }
+
+.totop { position: fixed; right: 18px; bottom: 18px; z-index: 55; width: 46px; height: 46px; border-radius: 50%; border: 1px solid var(--line);
+  background: rgba(10, 10, 14, .7); backdrop-filter: blur(10px); color: var(--white); font: 300 20px var(--font); cursor: pointer;
+  opacity: 0; transform: translateY(12px); pointer-events: none; transition: opacity .3s, transform .3s, border-color .2s; }
+.totop.show { opacity: 1; transform: none; pointer-events: auto; }
+.totop:hover { border-color: #8c8c90; }
+
+@media (prefers-reduced-motion: reduce) {
+  .progress, .head h2::after, .hero h1, .hero .scrollcue::after { animation: none; }
+  .hero h1 { background: none; color: var(--white); }
+  .js .rv { opacity: 1; transform: none; transition: none; }
+  .bento.three .tile:hover, .bento.three .tile:hover .media video { transform: none; }
+  .hero .scrollcue { display: none; }
+}
+
+/* transfer inspection rig */
+.rig { margin-top: 50px; border: 1px solid var(--line); border-radius: 18px; padding: 16px; display: grid; gap: 14px; }
+.rig-ctl { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+.rig-ctl .choose { margin-top: 0; justify-content: flex-start; }
+.rig-stage { display: grid; gap: 12px; justify-items: center; }
+.rig-view { position: relative; width: min(560px, 100%); aspect-ratio: 1; border-radius: 6px; overflow: hidden; background: #2b2a30; --cut: 50%;
+  cursor: ew-resize; touch-action: none; user-select: none; box-shadow: 0 0 0 1px #3a3a40, 0 30px 60px rgba(0, 0, 0, .6); }
+.rig-view .cell { position: absolute; inset: 0; background-image: url(media/graphs/transfer_deep.png?v=8); background-repeat: no-repeat;
+  background-size: 400% 229.17%; transition: opacity .5s ease; }
+.rig-view .over { clip-path: inset(0 0 0 var(--cut)); }
+.rig-view .err { opacity: 0; mix-blend-mode: normal; }
+.rig.showerr .rig-view .err { opacity: 1; }
+.rig-view .cut { position: absolute; top: 0; bottom: 0; left: var(--cut); width: 2px; margin-left: -1px; background: var(--amber); pointer-events: none; }
+.rig.showerr .rig-view .cut, .rig.showerr .rig-view .stamp { opacity: 0; }
+.rig-view .cut span { position: absolute; top: 50%; left: 50%; width: 30px; height: 30px; margin: -15px 0 0 -15px; border-radius: 50%;
+  background: #111 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3E%3Cpath d='M12 9l-5 6 5 6M18 9l5 6-5 6' fill='none' stroke='%23f2a93b' stroke-width='2'/%3E%3C/svg%3E") center/100%;
+  border: 2px solid var(--amber); }
+.rig-view .stamp { position: absolute; top: 12px; font: 600 11px var(--mono); text-transform: uppercase; letter-spacing: .08em; padding: 4px 8px;
+  background: rgba(0, 0, 0, .7); border: 1px solid #444; color: var(--white); transition: opacity .3s; }
+.rig-view .stamp.l { left: 12px; } .rig-view .stamp.r { right: 12px; color: var(--amber); border-color: var(--amber); }
+.rig-view .beam { position: absolute; left: 0; right: 0; height: 80px; top: -80px; pointer-events: none;
+  background: linear-gradient(180deg, transparent, rgba(242, 169, 59, .18) 85%, rgba(242, 169, 59, .9) 100%); }
+.rig-view.scan .beam { animation: beam 1.1s cubic-bezier(.4, 0, .2, 1); }
+@keyframes beam { from { top: -80px; } to { top: 100%; } }
+.rig-view .reticle { position: absolute; inset: 14px; pointer-events: none;
+  background: linear-gradient(var(--steel), var(--steel)) 0 0 / 18px 1px, linear-gradient(var(--steel), var(--steel)) 0 0 / 1px 18px,
+              linear-gradient(var(--steel), var(--steel)) 100% 0 / 18px 1px, linear-gradient(var(--steel), var(--steel)) 100% 0 / 1px 18px,
+              linear-gradient(var(--steel), var(--steel)) 0 100% / 18px 1px, linear-gradient(var(--steel), var(--steel)) 0 100% / 1px 18px,
+              linear-gradient(var(--steel), var(--steel)) 100% 100% / 18px 1px, linear-gradient(var(--steel), var(--steel)) 100% 100% / 1px 18px;
+  background-repeat: no-repeat; opacity: .7; }
+.rig .slider { width: min(560px, 100%); accent-color: var(--amber); margin: 0; }
+.rig-read { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; width: 100%; }
+.rig-read div { border: 1px solid var(--line); padding: 10px 12px; display: grid; gap: 4px; }
+.rig-read .tiny { font-family: var(--mono); text-transform: uppercase; letter-spacing: .08em; font-size: 11px; }
+.rig-read b { font-weight: 400; font-size: 16px; }
+.rig-read i { display: inline-block; width: 10px; height: 10px; margin: 0 6px 0 0; vertical-align: middle; }
+.rig-read i.add { background: #c0392b; } .rig-read i.miss { background: #2f7fc1; margin-left: 10px; }
+@media (max-width: 860px) { .rig-read { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (prefers-reduced-motion: reduce) { .rig-view.scan .beam { animation: none; } .rig-view .cell { transition: none; } }
 </style>
 </head>
 <body>
@@ -416,7 +554,34 @@ td { color: var(--grey); }
 <p class="say">So why do the metrics above disagree? Pixel correlation penalises a misplaced highlight <span class="hi">twice</span>, once where it lands and once where it should have been, so blurring pays. LPIPS rewards <span class="hi">sharp facets</span>, even displaced ones.</p>
 
 <p class="say" id="transfer">Do our results transfer to a new diamond? Shading a different diamond cut without retraining, the deep decoder <span class="hi">keeps the old diamond's routes and surface normals</span>.<span class="gap"></span>Therefore, it adds light almost everywhere onto the diamond but misplaces the bright reflections.</p>
-<div class="panel" style="margin-top: 50px; background: #fff"><img src="media/graphs/transfer_deep.png?v=8" alt="Deep decoder trained on each cut, transferred from another cut, and the transferred render minus the reference: red is added light, blue is missed light" style="width: 100%; display: block"></div>
+<div class="rig" id="rig">
+<div class="rig-ctl">
+<div class="choose" role="group" aria-label="Choose the transfer">
+<button type="button" data-tr="0" aria-pressed="true">GIA brilliant → pear brilliant</button>
+<button type="button" data-tr="1" aria-pressed="false">Pear brilliant → step cut</button>
+</div>
+<label class="check"><input type="checkbox" id="rigErr">Show the error map</label>
+</div>
+<div class="rig-stage">
+<div class="rig-view" id="rigView" role="img" aria-label="Deep decoder render of the pear brilliant: trained on this cut on the left, transferred from the GIA brilliant on the right">
+<div class="cell base" id="rigBase"></div>
+<div class="cell over" id="rigOver"></div>
+<div class="cell err" id="rigErrCell"></div>
+<div class="beam" aria-hidden="true"></div>
+<div class="cut" aria-hidden="true"><span></span></div>
+<span class="stamp l" id="rigL">trained on this cut</span>
+<span class="stamp r" id="rigR">transferred · no retraining</span>
+<span class="reticle" aria-hidden="true"></span>
+</div>
+<input class="slider" id="rigWipe" type="range" min="0" max="100" value="50" aria-label="Wipe between the render trained on this cut and the transferred render">
+<div class="rig-read">
+<div><span class="tiny">specimen</span><b id="rigSpec">pear brilliant</b></div>
+<div><span class="tiny">trained on</span><b id="rigFrom">GIA brilliant</b></div>
+<div><span class="tiny">decoder</span><b>deep</b></div>
+<div class="key"><span class="tiny">error map</span><b><i class="add"></i>added light <i class="miss"></i>missed light</b></div>
+</div>
+</div>
+</div>
 
 <div class="head" id="verdict"><span class="tiny">[ hypotheses ]</span><h2>The verdict</h2></div>
 <div class="rows">
@@ -431,6 +596,16 @@ td { color: var(--grey); }
 <a class="tile" href="https://github.com/Sally-Mohlakola/Neural_Diamond"><span class="tiny">↱ code</span><span class="big">↳ GitHub</span></a>
 <a class="tile" href="#compare"><span class="tiny">↱ try it</span><span class="big">↳ Compare renders</span></a>
 <div class="tile"><span class="tiny">Gopolang Mohlakola · supervised by Branden Ingram and Pravesh Ranchod</span><span class="big">School of Computer Science and Applied Mathematics, University of the Witwatersrand</span></div>
+</div>
+<div class="cite" id="cite">
+<div class="bar"><span class="tiny">↱ cite this work</span><button type="button" id="citeCopy">Copy BibTeX</button></div>
+<pre id="citeText">@misc{mohlakola2026neuraldiamonds,
+  title        = {An Exploration of Neural Transport Operators for Diamond Rendering},
+  author       = {Mohlakola, Gopolang and Ingram, Branden and Ranchod, Pravesh},
+  year         = {2026},
+  institution  = {School of Computer Science and Applied Mathematics, University of the Witwatersrand},
+  howpublished = {\url{https://sally-mohlakola.github.io/Neural_Diamond/}}
+}</pre>
 </div>
 <div class="legal tiny"><span>© 2026 Gopolang Mohlakola</span><span>Rendered with Mitsuba 3 · trained on the Wits Mathematical Sciences cluster</span></div>
 
@@ -1276,6 +1451,179 @@ td { color: var(--grey); }
     legend.appendChild(b);
   });
   select(0);
+})();
+</script>
+
+<script>
+(function () {
+  var doc = document.documentElement;
+  doc.classList.add('js');
+  var still = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // reading progress, header state, back-to-top
+  var bar = document.createElement('div'); bar.className = 'progress'; document.body.appendChild(bar);
+  var top = document.querySelector('.top');
+  var up = document.createElement('button'); up.className = 'totop'; up.type = 'button'; up.setAttribute('aria-label', 'Back to top'); up.textContent = '↑';
+  up.addEventListener('click', function () { window.scrollTo({ top: 0, behavior: still ? 'auto' : 'smooth' }); });
+  document.body.appendChild(up);
+  function onScroll() {
+    var h = doc.scrollHeight - innerHeight, y = scrollY;
+    bar.style.transform = 'scaleX(' + (h > 0 ? y / h : 0) + ')';
+    top.classList.toggle('scrolled', y > 40);
+    up.classList.toggle('show', y > innerHeight * 1.2);
+  }
+  addEventListener('scroll', onScroll, { passive: true }); onScroll();
+
+  // number the sections and mark the one being read in the nav
+  var heads = [].slice.call(document.querySelectorAll('.head'));
+  heads.forEach(function (h, i) {
+    var t = h.querySelector('.tiny');
+    if (t) { var n = document.createElement('span'); n.className = 'idx'; n.textContent = String(i + 1).padStart(2, '0'); t.insertBefore(n, t.firstChild); }
+  });
+  var links = [].slice.call(document.querySelectorAll('.top nav a'));
+  var targets = links.map(function (a) { return document.querySelector(a.getAttribute('href')); });
+  function spy() {
+    var mid = innerHeight * .35, cur = -1;
+    targets.forEach(function (t, i) { if (t && t.getBoundingClientRect().top < mid) cur = i; });
+    links.forEach(function (a, i) { a.classList.toggle('on', i === cur); });
+  }
+  addEventListener('scroll', spy, { passive: true }); spy();
+
+  // reveal blocks as they scroll in, siblings in a short cascade
+  var sel = '.say, .head, .bento .tile, .arch, .web, .legend, .reel, .terms .term, .viewer .panel, .rows .row, .rows .verdict, .limits, .foot .tile, .cite, .panel[style], figure, .choose';
+  var items = [].slice.call(document.querySelectorAll(sel)).filter(function (e) { return !e.closest('.hero') && !e.closest('.arch .choose') && !e.closest('.ctrl'); });
+  items.forEach(function (e) {
+    e.classList.add('rv');
+    var sib = e.parentNode ? [].slice.call(e.parentNode.children).filter(function (c) { return c.matches(sel); }) : [];
+    var k = sib.indexOf(e); if (k > 0 && sib.length > 1) e.style.setProperty('--d', Math.min(k, 6) * .08 + 's');
+  });
+  if ('IntersectionObserver' in window && !still) {
+    var io = new IntersectionObserver(function (es) {
+      es.forEach(function (en) { if (en.isIntersecting) { en.target.classList.add('in'); io.unobserve(en.target); } });
+    }, { rootMargin: '0px 0px -8% 0px', threshold: .08 });
+    items.forEach(function (e) { io.observe(e); });
+  } else items.forEach(function (e) { e.classList.add('in'); });
+
+  // cursor light on cards
+  [].slice.call(document.querySelectorAll('.tile, .panel, .arch, .fact, .web')).forEach(function (c) {
+    c.classList.add('glow');
+    c.addEventListener('pointermove', function (ev) {
+      var r = c.getBoundingClientRect();
+      c.style.setProperty('--gx', (ev.clientX - r.left) + 'px'); c.style.setProperty('--gy', (ev.clientY - r.top) + 'px');
+    });
+  });
+
+  // hero: light and diamond follow the cursor
+  var hero = document.querySelector('.hero'), obj = hero && hero.querySelector('.obj');
+  if (hero) {
+    var cue = document.createElement('span'); cue.className = 'scrollcue'; cue.setAttribute('aria-hidden', 'true'); hero.appendChild(cue);
+    if (!still) hero.addEventListener('pointermove', function (ev) {
+      var r = hero.getBoundingClientRect(), x = (ev.clientX - r.left) / r.width, y = (ev.clientY - r.top) / r.height;
+      hero.style.setProperty('--mx', (x * 100) + '%'); hero.style.setProperty('--my', (y * 100) + '%');
+      if (obj) obj.style.transform = 'translate(calc(-50% + ' + ((x - .5) * 22).toFixed(1) + 'px), calc(-46% + ' + ((y - .5) * 16).toFixed(1) + 'px))';
+    });
+    hero.addEventListener('pointerleave', function () { if (obj) obj.style.transform = ''; });
+  }
+
+  // compare scores count to their new values instead of jumping
+  ['sCorr', 'sCon', 'sEn'].forEach(function (id) {
+    var e = document.getElementById(id); if (!e || still) return;
+    var busy = false;
+    new MutationObserver(function () {
+      if (busy) return;
+      var to = e.textContent, m = to.match(/^([+−-]?)(\d+(?:\.\d+)?)(%?)$/);
+      if (!m) return;
+      var dec = (m[2].split('.')[1] || '').length, end = parseFloat(m[2]), from = parseFloat(e.dataset.prev || end), t0 = performance.now();
+      e.dataset.prev = end; e.classList.add('tick');
+      (function step(now) {
+        var k = Math.min(1, (now - t0) / 450), v = from + (end - from) * (1 - Math.pow(1 - k, 3));
+        busy = true; e.textContent = (k < 1 ? m[1] + v.toFixed(dec) + m[3] : to); busy = false;
+        if (k < 1) requestAnimationFrame(step); else e.classList.remove('tick');
+      })(t0);
+    }).observe(e, { childList: true, characterData: true, subtree: true });
+  });
+
+  // copy the citation
+  var cb = document.getElementById('citeCopy');
+  if (cb) cb.addEventListener('click', function () {
+    var txt = document.getElementById('citeText').textContent;
+    (navigator.clipboard ? navigator.clipboard.writeText(txt) : Promise.reject()).then(function () { cb.textContent = 'Copied'; },
+      function () { cb.textContent = 'Select and copy'; });
+    setTimeout(function () { cb.textContent = 'Copy BibTeX'; }, 1800);
+  });
+
+  // ambient glints: a few points of light that twinkle like a diamond's fire, drifting slowly
+  if (still) return;
+  var cv = document.createElement('canvas'); cv.id = 'ambient'; document.body.insertBefore(cv, document.body.firstChild);
+  var cx = cv.getContext('2d'), W, H, dpr = Math.min(2, devicePixelRatio || 1), pts = [];
+  var hues = ['242,169,59', '255,200,120', '185,190,198', '255,255,255'];
+  function size() { W = cv.width = innerWidth * dpr; H = cv.height = innerHeight * dpr; cv.style.width = innerWidth + 'px'; cv.style.height = innerHeight + 'px'; }
+  size(); addEventListener('resize', size);
+  var count = Math.round(Math.min(40, innerWidth / 36));
+  for (var i = 0; i < count; i++) pts.push({ x: Math.random(), y: Math.random(), z: .3 + Math.random() * .7, p: Math.random() * 6.28,
+    s: .4 + Math.random() * 1.2, c: hues[i % hues.length], vy: (Math.random() * .5 + .15) * 1e-5 });
+  var last = performance.now(), run = true;
+  document.addEventListener('visibilitychange', function () { run = !document.hidden; if (run) { last = performance.now(); requestAnimationFrame(draw); } });
+  function draw(now) {
+    if (!run) return;
+    var dt = Math.min(50, now - last); last = now;
+    cx.clearRect(0, 0, W, H);
+    var par = scrollY * 1e-4;
+    pts.forEach(function (q) {
+      q.y -= q.vy * dt; if (q.y < -.05) { q.y = 1.05; q.x = Math.random(); }
+      var tw = Math.pow(Math.max(0, Math.sin(now * .0011 * q.s + q.p)), 6);
+      var x = q.x * W, y = (((q.y - par * q.z) % 1 + 1) % 1) * H, r = (0.6 + q.z) * dpr, a = .08 + tw * .7 * q.z;
+      cx.fillStyle = 'rgba(' + q.c + ',' + a.toFixed(3) + ')';
+      cx.beginPath(); cx.arc(x, y, r, 0, 6.283); cx.fill();
+      if (tw > .25) {           // a four-point star at the peak of each twinkle
+        var L = (4 + 10 * tw) * q.z * dpr;
+        cx.strokeStyle = 'rgba(' + q.c + ',' + (a * .6).toFixed(3) + ')'; cx.lineWidth = .7 * dpr;
+        cx.beginPath(); cx.moveTo(x - L, y); cx.lineTo(x + L, y); cx.moveTo(x, y - L); cx.lineTo(x, y + L); cx.stroke();
+      }
+    });
+    requestAnimationFrame(draw);
+  }
+  requestAnimationFrame(draw);
+})();
+</script>
+
+<script>
+(function () {
+  var rig = document.getElementById('rig'); if (!rig) return;
+  // panel origins inside the composite figure (768 x 440 px, each panel 192 px)
+  var COLS = [74, 308, 542], ROWS = [47, 243];
+  function pos(c, r) { return (COLS[c] / (768 - 192) * 100).toFixed(3) + '% ' + (ROWS[r] / (440 - 192) * 100).toFixed(3) + '%'; }
+  var sets = [
+    { spec: 'pear brilliant', from: 'GIA brilliant' },
+    { spec: 'step cut', from: 'pear brilliant' }
+  ];
+  var view = document.getElementById('rigView'), base = document.getElementById('rigBase'), over = document.getElementById('rigOver'), err = document.getElementById('rigErrCell');
+  var wipe = document.getElementById('rigWipe');
+  function scan() { view.classList.remove('scan'); void view.offsetWidth; view.classList.add('scan'); }
+  function load(i) {
+    base.style.backgroundPosition = pos(0, i); over.style.backgroundPosition = pos(1, i); err.style.backgroundPosition = pos(2, i);
+    document.getElementById('rigSpec').textContent = sets[i].spec; document.getElementById('rigFrom').textContent = sets[i].from;
+    view.setAttribute('aria-label', 'Deep decoder render of the ' + sets[i].spec + ': trained on this cut on the left, transferred from the ' + sets[i].from + ' on the right');
+    scan();
+  }
+  rig.querySelectorAll('[data-tr]').forEach(function (b) {
+    b.addEventListener('click', function () {
+      rig.querySelectorAll('[data-tr]').forEach(function (o) { o.setAttribute('aria-pressed', o === b ? 'true' : 'false'); });
+      load(+b.dataset.tr);
+    });
+  });
+  document.getElementById('rigErr').addEventListener('change', function (e) { rig.classList.toggle('showerr', e.target.checked); scan(); });
+  function set(v) { view.style.setProperty('--cut', v + '%'); }
+  wipe.addEventListener('input', function () { set(wipe.value); });
+  function drag(ev) { var r = view.getBoundingClientRect(); var v = Math.max(0, Math.min(100, (ev.clientX - r.left) / r.width * 100)); wipe.value = v; set(v); }
+  view.addEventListener('pointerdown', function (ev) { view.setPointerCapture(ev.pointerId); drag(ev); view.onpointermove = drag; });
+  view.addEventListener('pointerup', function () { view.onpointermove = null; });
+  load(0);
+  // scan once when it first scrolls into view
+  if ('IntersectionObserver' in window) {
+    var io = new IntersectionObserver(function (es) { if (es[0].isIntersecting) { scan(); io.disconnect(); } }, { threshold: .4 });
+    io.observe(view);
+  }
 })();
 </script>
 </body>
