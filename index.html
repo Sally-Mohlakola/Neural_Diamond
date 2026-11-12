@@ -280,8 +280,8 @@ td { color: var(--grey); }
 
 /* transitions: reveal on scroll, a reading bar, a sticky header that marks the current section */
 .progress { position: fixed; top: 0; left: 0; right: 0; height: 1px; z-index: 60; transform-origin: 0 50%; transform: scaleX(0); background: var(--white); }
-.top { position: sticky; top: 0; z-index: 50; margin: 0 -16px; padding: 12px 16px; background: rgba(0, 0, 0, .7);
-  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-bottom: 1px solid transparent; transition: border-color .3s; }
+.top { position: sticky; top: 0; z-index: 50; margin: 0 -16px; padding: 12px 16px; background: #000;
+  border-bottom: 1px solid transparent; transition: border-color .3s; }
 .top.scrolled { border-bottom-color: var(--line); }
 .top nav a { transition: color .2s; }
 .top nav a.on { color: var(--white); }
@@ -336,6 +336,22 @@ td { color: var(--grey); }
 .archkey span { display: inline-flex; align-items: center; gap: 9px; }
 .archkey i { width: 16px; height: 16px; border-radius: 4px; display: inline-block; }
 .archkey i.dash { width: 26px; height: 0; border-radius: 0; border-top: 2px dashed #9aa3ad; }
+/* phones: larger labels in the stacked diagram, compact controls, a one-line menu */
+.arch svg.tall .node .lab { font-size: 21px; }
+.arch svg.tall .node .sub { font-size: 16px; }
+.arch svg.tall .node .chiptext { font-size: 17px; }
+@media (max-width: 700px) {
+  .arch { padding: 10px; }
+  .arch .choose { gap: 6px; }
+  .arch .choose button { padding: 8px 12px; font-size: 14px; min-height: 40px; }
+  .archkey { font-size: 15px; gap: 8px 16px; }
+  .arch .info h3 { font-size: 22px; }
+  .top nav { flex-wrap: nowrap; overflow-x: auto; gap: 16px; width: 100%; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+  .top nav::-webkit-scrollbar { display: none; }
+  .top nav a { white-space: nowrap; padding: 6px 0; }
+  .top { padding-top: 8px; padding-bottom: 6px; gap: 4px; }
+  .arch .node .wear { display: none; }
+}
 </style>
 </head>
 <body>
@@ -737,13 +753,13 @@ td { color: var(--grey); }
         'entry-trunk': 'M432 295 C432 382 700 380 906 380',
         'exit-camera': 'M1337 297 C1337 468 87 468 87 279' } },
     tall: { view: '0 0 460 960', label: [230, 948], nodes: {
-      camera: [120, 15, 220, 70], surface: [120, 115, 220, 70], entry: [120, 215, 220, 125], encoder: [120, 370, 220, 70],
-      facet: [45, 475, 170, 70], escape: [245, 475, 170, 70], embed: [45, 580, 170, 70], trunk: [245, 580, 170, 70],
-      stochastic: [40, 690, 115, 70], clone: [165, 690, 120, 70], deep: [295, 690, 120, 70], exit: [120, 805, 220, 80] },
+      camera: [100, 15, 260, 70], surface: [100, 115, 260, 70], entry: [100, 215, 260, 125], encoder: [100, 370, 260, 70],
+      facet: [30, 475, 190, 70], escape: [240, 475, 190, 70], embed: [30, 580, 190, 70], trunk: [240, 580, 190, 70],
+      stochastic: [26, 690, 130, 74], clone: [164, 690, 130, 74], deep: [302, 690, 132, 74], exit: [100, 805, 260, 80] },
       paths: {
-        'escape-exit': 'M415 510 C452 510 452 845 344 845',
-        'entry-trunk': 'M340 278 C440 278 440 560 330 576',
-        'exit-camera': 'M120 845 C2 845 2 50 116 50' } }
+        'escape-exit': 'M430 510 C456 510 456 845 364 845',
+        'entry-trunk': 'M360 278 C450 278 450 560 335 576',
+        'exit-camera': 'M100 845 C6 845 6 50 96 50' } }
   };
   var edges = ['camera-surface', 'surface-entry', 'entry-encoder', 'encoder-escape', 'encoder-facet', 'facet-embed',
                'embed-stochastic', 'embed-clone', 'embed-deep', 'entry-trunk', 'trunk-deep',
@@ -770,6 +786,7 @@ td { color: var(--grey); }
     while (svg.firstChild) svg.removeChild(svg.firstChild);
     nodeEls = {}; edgeEls = {};
     svg.setAttribute('viewBox', L.view);
+    svg.classList.toggle('tall', m === 'tall');
     var defs = el('defs', {}, svg);
     Object.keys(PAL).map(function (k) { return [k, PAL[k]]; }).forEach(function (pc) {
       var gr = el('linearGradient', { id: 'pvc-' + pc[0], x1: 0, y1: 0, x2: 0, y2: 1 }, defs);
