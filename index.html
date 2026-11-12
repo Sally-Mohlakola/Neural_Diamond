@@ -360,7 +360,7 @@ td { color: var(--grey); }
 <a class="row" href="#decoders"><span>↳ Three decoders</span><span class="r">45 trained runs ↵</span></a>
 </nav>
 
-<p class="say">We ask whether a neural network can learn <span class="hi">light transport inside a diamond</span>. The answer of which neural diamonds match the reference better <span class="hi">depends on how we measured it</span>.</p>
+<p class="say">We ask whether a neural network can learn <span class="hi">light transport inside a diamond</span>. The answer of which neural diamonds match the reference better <span class="hi">depends on how the image was measured</span>.</p>
 
 <div class="head" id="journey"><span class="tiny">[ the journey ]</span><h2>Three attempts</h2></div>
 <div class="bento three">
@@ -481,7 +481,7 @@ td { color: var(--grey); }
 <p class="tiny">Mean of five training runs, scored against the reference.</p>
 </div>
 </div>
-<p class="say"><span class="q">So why do the metrics above disagree?</span> Pearson’s pixel correlation penalises misplaced highlights, so blurring pays. But LPIPS rewards <span class="hi">sharp facets</span>, even displaced ones.</p>
+<p class="say"><span class="q">So why do the metrics above disagree?</span> Pearson’s pixel correlation penalises misplaced highlights, so <strong>blurring</strong> pays. But LPIPS rewards <span class="hi">sharp facets</span>, even displaced ones.</p>
 
 <p class="say" id="transfer"><span class="q">Do our results transfer to a new diamond?</span> Shading a different diamond cut without retraining, the deep decoder <span class="hi">keeps the old diamond's routes and surface normals</span>.<span class="gap"></span>Therefore, it adds light almost everywhere onto the diamond but misplaces the bright reflections.</p>
 <div class="rig" id="rig">
@@ -532,7 +532,7 @@ td { color: var(--grey); }
   author       = {Mohlakola, Gopolang and Ingram, Branden and Ranchod, Pravesh},
   year         = {2026},
   institution  = {School of Computer Science and Applied Mathematics, University of the Witwatersrand},
-  howpublished = {\url{https://sally-mohlakola.github.io/Neural_Diamond/}}
+  howpublished = {\url{https://github.com/Sally-Mohlakola/Neural_Diamond}}
 }</pre>
 </div>
 <div class="legal tiny"><span>© 2026 Gopolang Mohlakola</span><span>Rendered with Mitsuba 3 · trained on the Wits Mathematical Sciences cluster</span></div>
@@ -580,7 +580,7 @@ td { color: var(--grey); }
     document.getElementById('sConRef').textContent = 'reference ' + d.ref;
     document.getElementById('sEn').textContent = s[2];
     document.getElementById('sNote').textContent = state.truefacet
-      ? 'The exact tracer gives each exit facet to the neural pipeline. By doing so, contrast rises toward the reference, and a diamond visual is achieved that we, as people, would recognise.'
+      ? 'The exact tracer gives each exit facet to the neural pipeline. Contrast rises toward the reference, and a diamond visual.'
       : notes[state.head];
   }
   function press(group, b) {
