@@ -281,7 +281,7 @@ td { color: var(--grey); }
 <header class="top">
 <a class="tiny" href="#top"><span class="hi">G. Mohlakola</span> · honours research 2026</a>
 <nav aria-label="Sections">
-<a href="#journey">Journey</a><a href="#how">How it works</a><a href="#papers">Papers</a><a href="#decoders">Decoders</a><a href="#compare">Compare</a><a href="#failures">Failures</a><a href="#verdict">Verdict</a>
+<a href="#journey">Journey</a><a href="#how">How it works</a><a href="#papers">Papers</a><a href="#decoders">Decoders</a><a href="#compare">Compare</a><a href="#verdict">Verdict</a>
 </nav>
 </header>
 
@@ -295,7 +295,6 @@ td { color: var(--grey); }
 <nav class="rows" aria-label="Project outline">
 <a class="row" href="#journey"><span>↳ Radiance map</span><span class="r">Neural operator ↵</span></a>
 <a class="row" href="#decoders"><span>↳ Three decoders</span><span class="r">45 trained runs ↵</span></a>
-<a class="row" href="#failures"><span class="r">↳ Short routes</span><span>Long routes ↵</span></a>
 </nav>
 
 <p class="say">We ask whether a neural network can learn <span class="hi">light transport inside a diamond</span>. The neural network learns, and its deterministic decoders pick the correct exit facet <span class="hi">more often than the stochastic decoder</span>. But whether their diamonds matched the reference better <span class="hi">depends on how we measured it</span>.</p>
@@ -411,20 +410,6 @@ td { color: var(--grey); }
 </div>
 </div>
 <p class="say">So why do the metrics above disagree? Pixel correlation penalises a misplaced highlight <span class="hi">twice</span>, once where it lands and once where it should have been, so blurring pays. LPIPS rewards <span class="hi">sharp facets</span>, even displaced ones.</p>
-
-<p class="say" id="failures">Where do our neural predictions go wrong? Each facet a ray bounces off is an edge where a small change in entry sends light to a different exit, and so small networks <span class="hi">smooth those jumps away</span>.</p>
-<div class="facts">
-<div class="fact"><div class="v">59%</div><p>of paths that meet two or three facets leave through the correct exit facet.<br>Given the true facet, they leave within a median of 11° of the traced direction</p></div>
-<div class="fact"><div class="v">2%</div><p>of paths that meet sixteen facets or more leave through the correct exit facet.<br>Given the true facet, they miss the traced direction by a median of 44°</p></div>
-<div class="fact"><div class="v">30 / 32%</div><p>exit-facet accuracy on the pavilion against the crown of the GIA brilliant. This means the pavilion is predicted almost as well as the crown. The pavilion fails only when no training entries reach it</p></div>
-</div>
-
-<p class="say">Is our pipeline faster? Each network call is <span class="hi">three times faster</span> than tracing the inside, but the render around it grows, so the whole image takes <span class="hi">29% longer</span>.</p>
-<div class="facts">
-<div class="fact"><div class="v">10.4 µs</div><p>per ray through the network, against 31 µs to trace it</p></div>
-<div class="fact"><div class="v">341 s</div><p>for a neural render, against 264 s for the exact tracer</p></div>
-<div class="fact"><div class="v">17+</div><p>rays per call before the network beats tracing. The renderer averages 83, so the inside is faster, and the time is lost on the pipeline calculations around it</p></div>
-</div>
 
 <p class="say" id="transfer">Do our results transfer to a new diamond? Shading a different diamond cut without retraining, the deep decoder <span class="hi">keeps the old diamond's routes and surface normals</span>. Therefore, it adds light almost everywhere onto the diamond but misplaces the bright reflections.</p>
 <div class="panel" style="margin-top: 50px; background: #fff"><img src="media/graphs/transfer_deep.png?v=8" alt="Deep decoder trained on each cut, transferred from another cut, and the transferred render minus the reference: red is added light, blue is missed light" style="width: 100%; display: block"></div>
