@@ -352,6 +352,11 @@ td { color: var(--grey); }
   .top { padding-top: 8px; padding-bottom: 6px; gap: 4px; }
   .arch .node .wear { display: none; }
 }
+.arch .archimg { display: none; width: 100%; height: auto; }
+@media (max-width: 700px) {
+  .arch .archimg { display: block; margin: 4px auto 0; max-width: 420px; }
+  .arch .scroll, .arch .choose, .arch .hint { display: none; }
+}
 </style>
 </head>
 <body>
@@ -408,6 +413,7 @@ td { color: var(--grey); }
 <button type="button" data-route="deep" aria-pressed="false">Follow a ray · deep</button>
 <button type="button" class="reset" id="archReset" hidden>↺ Reset</button>
 </div>
+<img class="archimg" src="media/graphs/architecture_mobile.png?v=1" alt="The neural transport operator, top to bottom: camera rays from the path tracer meet the first surface, which is traced exactly. The entry state x of ten numbers feeds a shared encoder. A facet head and an escape head follow. The facet embedding feeds three decoders, stochastic, clone and deep, and the deep decoder also has its own trunk from the entry state. The exit ray returns to the path tracer." loading="lazy" width="963" height="2010">
 <div class="scroll"><svg id="archSvg" viewBox="0 0 1260 540" role="group" aria-label="The neural transport operator. Each block can be selected to read what it does."></svg></div>
 <div class="archkey" aria-label="Colour key">
 <span><i style="background:#5b6672"></i>exact path tracing</span>
