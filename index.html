@@ -294,7 +294,7 @@ td { color: var(--grey); }
 .tile .media video { transition: transform .8s cubic-bezier(.2, .7, .2, 1); }
 .bento.three .tile:hover .media video { transform: scale(1.04); }
 .choose button { transition: color .2s, background .2s, border-color .2s, transform .15s; }
-.choose button:hover { border-color: #55555a; color: var(--white); }
+.choose button:hover, .choose button[aria-pressed="true"]:hover { border-color: #55555a; color: #e5302a; }
 .choose button:active { transform: scale(.96); }
 .cite { margin-top: 14px; border: 1px solid var(--line); border-radius: 18px; background: var(--tile); padding: 18px 20px; display: grid; gap: 10px; }
 .cite .bar { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
