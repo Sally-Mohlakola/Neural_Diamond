@@ -146,7 +146,7 @@ td { color: var(--grey); }
 .figure { margin-top: 50px; background: #fff; border-radius: 18px; padding: 14px; }
 .figure img { width: 100%; }
 .why { max-width: 620px; margin: 50px auto 0; text-align: center; }
-.why img { width: 100%; border-radius: 18px; display: block; }
+.why video { width: 100%; aspect-ratio: 1; border-radius: 18px; display: block; }
 .why figcaption { font-size: 13px; color: var(--grey); margin-top: 12px; }
 .steps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin-top: 14px; }
 .step { border: 1px solid var(--line); border-radius: 18px; padding: 22px; }
@@ -388,8 +388,8 @@ td { color: var(--grey); }
 <p class="say">We ask whether a neural network can learn <span class="hi">light transport inside a diamond</span>. The answer of which neural diamonds match the reference better <span class="hi">depends on how the image was measured</span>.</p>
 
 <div class="head" id="why"><span class="tiny">[ why we investigated this ]</span><h2>More light out than in</h2></div>
-<figure class="why"><img src="media/still/energy_violation.webp?v=1" loading="lazy" alt="A brilliant diamond rendered with a learned shading model: a facet glows flat, solid white, brighter than any light that entered the diamond"><figcaption>A learned shading model, rendered. The flat white facet sends out more light than the diamond took in.</figcaption></figure>
-<p class="say">A diamond can only give back the light that enters it. Here, a facet glows solid white. The diamond sends out <span class="hi">more energy than it received</span>, so <em class="hi">energy conservation is broken</em>. A model that answers by direction alone cannot know where the light really went. That is why we set out to learn <span class="hi">how light actually travels inside</span>.</p>
+<figure class="why"><video class="glass" src="media/anim/energy_violation.mp4?v=1" autoplay muted loop playsinline preload="metadata" aria-label="A brilliant diamond rotating; one facet glows flat, solid white, brighter than any light that entered the diamond"></video></figure>
+<p class="say">A diamond can only give back the light that enters it. Here, a facet glows solid white. The diamond sends out <span class="hi">more energy than it received</span>, so <em class="hi">energy conservation is broken</em>.</p>
 
 <div class="head" id="journey"><span class="tiny">[ the journey ]</span><h2>Three attempts</h2></div>
 <div class="bento three">
