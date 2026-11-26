@@ -145,6 +145,17 @@ td { color: var(--grey); }
 /* how it works: the figure on white, then three plain steps */
 .figure { margin-top: 50px; background: #fff; border-radius: 18px; padding: 14px; }
 .figure img { width: 100%; }
+.eqn { max-width: 980px; margin: 40px auto 0; border: 1px solid var(--line); border-radius: 18px; padding: 30px 22px; text-align: center; }
+.eqn .eq { font: 300 clamp(20px, 3vw, 34px)/1.3 Georgia, 'Times New Roman', serif; color: var(--white); letter-spacing: .01em; }
+.eqn .eq b, .eqterms b { font-weight: 600; }
+.eqn .t.s { color: #6fd6c4; } .eqn .t.f { color: #a898f0; } .eqn .t.q { color: #f5cf92; }
+.eqterms { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin-top: 26px; text-align: left; }
+.eqterms > div { border: 1px solid var(--line); border-radius: 14px; padding: 16px; }
+.eqterms .t { font: 18px Georgia, 'Times New Roman', serif; }
+.eqterms p { font-size: 15px; color: var(--grey); margin-top: 8px; line-height: 1.45; }
+.eqnote { font-size: 14px; color: var(--grey); margin-top: 18px; }
+@media (max-width: 720px) { .eqterms { grid-template-columns: minmax(0, 1fr); } }
+
 .why { max-width: 620px; margin: 50px auto 0; text-align: center; }
 .why video { width: 100%; aspect-ratio: 1; border-radius: 18px; display: block; }
 .why figcaption { font-size: 13px; color: var(--grey); margin-top: 12px; }
@@ -436,6 +447,16 @@ td { color: var(--grey); }
 <p class="hint">Tap or hover over any block to read what it does. Tap empty space, or Reset, to start again.</p>
 <div class="info" aria-live="polite"><div><h3 id="archTitle">The neural transport operator</h3><span class="tag" id="archTag">overview</span></div><p id="archText">The first surface is traced exactly. Inside the diamond, a network takes over. It decides whether the light escapes, through which facet, and where on that facet it leaves. The exit ray then goes back to the path tracer.</p></div>
 </div>
+<div class="eqn" aria-label="p of e, f, y given x equals s of x, times pi of f given x, times q of y given x and f">
+<p class="eq"><i>p</i>(<i>e</i>, <i>f</i>, <b>y</b> | <b>x</b>) = <span class="t s"><i>s</i>(<b>x</b>)</span> · <span class="t f"><i>π</i>(<i>f</i> | <b>x</b>)</span> · <span class="t q"><i>q</i>(<b>y</b> | <b>x</b>, <i>f</i>)</span></p>
+<div class="eqterms">
+<div><span class="t s"><i>s</i>(<b>x</b>)</span><p><b>Escape head</b>, sigmoid. The chance that light entering as <b>x</b> leaves the diamond.</p></div>
+<div><span class="t f"><i>π</i>(<i>f</i> | <b>x</b>)</span><p><b>Facet head</b>, softmax. Given that it escapes, the chance it leaves through facet <i>f</i>.</p></div>
+<div><span class="t q"><i>q</i>(<b>y</b> | <b>x</b>, <i>f</i>)</span><p><b>Decoder</b>. Where on facet <i>f</i> it leaves and which way: four numbers <b>y</b>, two for position and two for direction.</p></div>
+</div>
+<p class="eqnote"><b>x</b> is the entry state, ten numbers. The stochastic decoder learns <i>q</i> as a mixture of four Gaussians. The clone and the deep decoder put all of <i>q</i> on one predicted exit.</p>
+</div>
+
 <div class="head" id="papers"><span class="tiny">[ 26 references ]</span><h2>How the papers connect</h2></div>
 <p class="say" style="margin-top: 40px"><strong>No published paper</strong> was found to render a diamond with a neural method. But each one of the below papers gave us <span class="hi">a piece of the puzzle</span>.</p>
 <div class="legend" id="webLegend" role="group" aria-label="Highlight one group of papers"></div>
