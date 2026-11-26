@@ -153,6 +153,13 @@ td { color: var(--grey); }
 .eqterms > div { border: 1px solid var(--line); border-radius: 14px; padding: 16px; }
 .eqterms .t { font: 18px Georgia, 'Times New Roman', serif; }
 .eqterms p { font-size: 15px; color: var(--grey); margin-top: 8px; line-height: 1.45; }
+.eqn [data-term] { cursor: pointer; border-radius: 8px; transition: background .2s, box-shadow .2s, opacity .2s; }
+.eqn .eq .t { padding: 0 .12em; }
+.eqn.lit [data-term]:not(.lit) { opacity: .38; }
+.eqn .eq .t.lit { background: rgba(255,255,255,.1); box-shadow: 0 0 0 1px rgba(255,255,255,.35); }
+.eqterms > div.lit { border-color: rgba(255,255,255,.55); background: rgba(255,255,255,.04); }
+.eqn .t.x { color: #6fd6c4; }
+.eqhint { margin-top: 14px; }
 .eqnote { font-size: 14px; color: var(--grey); margin-top: 18px; }
 @media (max-width: 720px) { .eqterms { grid-template-columns: minmax(0, 1fr); } }
 
@@ -448,13 +455,14 @@ td { color: var(--grey); }
 <div class="info" aria-live="polite"><div><h3 id="archTitle">The neural transport operator</h3><span class="tag" id="archTag">overview</span></div><p id="archText">The first surface is traced exactly. Inside the diamond, a network takes over. It decides whether the light escapes, through which facet, and where on that facet it leaves. The exit ray then goes back to the path tracer.</p></div>
 </div>
 <div class="eqn" aria-label="p of e, f, y given x equals s of x, times pi of f given x, times q of y given x and f">
-<p class="eq"><i>p</i>(<i>e</i>, <i>f</i>, <b>y</b> | <b>x</b>) = <span class="t s"><i>s</i>(<b>x</b>)</span> · <span class="t f"><i>π</i>(<i>f</i> | <b>x</b>)</span> · <span class="t q"><i>q</i>(<b>y</b> | <b>x</b>, <i>f</i>)</span></p>
+<p class="eq"><span class="t all" tabindex="0" data-term="all"><i>p</i>(<i>e</i>, <i>f</i>, <b>y</b> | <span class="t x" data-term="x"><b>x</b></span>)</span> = <span class="t s" tabindex="0" data-term="s"><i>s</i>(<b>x</b>)</span> · <span class="t f" tabindex="0" data-term="f"><i>π</i>(<i>f</i> | <b>x</b>)</span> · <span class="t q" tabindex="0" data-term="q"><i>q</i>(<b>y</b> | <b>x</b>, <i>f</i>)</span></p>
 <div class="eqterms">
-<div><span class="t s"><i>s</i>(<b>x</b>)</span><p><b>Escape head</b>, sigmoid. The chance that light entering as <b>x</b> leaves the diamond.</p></div>
-<div><span class="t f"><i>π</i>(<i>f</i> | <b>x</b>)</span><p><b>Facet head</b>, softmax. Given that it escapes, the chance it leaves through facet <i>f</i>.</p></div>
-<div><span class="t q"><i>q</i>(<b>y</b> | <b>x</b>, <i>f</i>)</span><p><b>Decoder</b>. Where on facet <i>f</i> it leaves and which way: four numbers <b>y</b>, two for position and two for direction.</p></div>
+<div data-term="s"><span class="t s"><i>s</i>(<b>x</b>)</span><p><b>Escape head</b>, sigmoid. The chance that light entering as <b>x</b> leaves the diamond.</p></div>
+<div data-term="f"><span class="t f"><i>π</i>(<i>f</i> | <b>x</b>)</span><p><b>Facet head</b>, softmax. Given that it escapes, the chance it leaves through facet <i>f</i>.</p></div>
+<div data-term="q"><span class="t q"><i>q</i>(<b>y</b> | <b>x</b>, <i>f</i>)</span><p><b>Decoder</b>. Where on facet <i>f</i> it leaves and which way: four numbers <b>y</b>, two for position and two for direction.</p></div>
 </div>
-<p class="eqnote"><b>x</b> is the entry state, ten numbers. The stochastic decoder learns <i>q</i> as a mixture of four Gaussians. The clone and the deep decoder put all of <i>q</i> on one predicted exit.</p>
+<p class="hint eqhint">Hover or tap a term to see its blocks in the diagram above, and hover a block to see its term.</p>
+<p class="eqnote"><span class="t x" data-term="x"><b>x</b></span> is the entry state, ten numbers. The stochastic decoder learns <i>q</i> as a mixture of four Gaussians. The clone and the deep decoder put all of <i>q</i> on one predicted exit.</p>
 </div>
 
 <div class="head" id="papers"><span class="tiny">[ 26 references ]</span><h2>How the papers connect</h2></div>
@@ -954,6 +962,7 @@ td { color: var(--grey); }
     Object.keys(nodeEls).forEach(function (k) { nodeEls[k].classList.remove('on'); });
     Object.keys(edgeEls).forEach(function (k) { edgeEls[k].classList.remove('on', 'flow'); });
     box.classList.remove('dim');
+    document.dispatchEvent(new CustomEvent('archnode', { detail: null }));
   }
   function write(title, tag, text) {
     document.getElementById('archTitle').textContent = title;
@@ -974,6 +983,7 @@ td { color: var(--grey); }
       }
     });
     write(info[id].lab, info[id].tag, info[id].text);
+    document.dispatchEvent(new CustomEvent('archnode', { detail: id }));
   }
   var resetBtn = document.getElementById('archReset');
   function reset() {
@@ -990,6 +1000,18 @@ td { color: var(--grey); }
     buttons.forEach(function (b) { b.setAttribute('aria-pressed', 'false'); });
     show(id);
   }
+  window.archLink = {
+    light: function (ids, title, tag, text) {
+      if (pinned) return;
+      clear(); box.classList.add('dim');
+      ids.forEach(function (id) { if (nodeEls[id]) nodeEls[id].classList.add('on'); });
+      Object.keys(edgeEls).forEach(function (k) {
+        var e = k.split('-'); if (ids.indexOf(e[0]) >= 0 && ids.indexOf(e[1]) >= 0) edgeEls[k].classList.add('on');
+      });
+      write(title, tag, text);
+    },
+    off: function () { if (!pinned) { clear(); write.apply(null, overview); } }
+  };
   function follow(name) {
     clear();
     box.classList.add('dim');
@@ -1533,6 +1555,37 @@ td { color: var(--grey); }
   }
   addEventListener('scroll', check, { passive: true }); addEventListener('resize', check);
   vid.addEventListener('canplay', check); check();
+})();
+</script>
+<script>
+(function () {
+  var eqn = document.querySelector('.eqn'); if (!eqn) return;
+  var MAP = {
+    all: [['entry','encoder','escape','facet','embed','stochastic','clone','deep','trunk','exit'], 'The whole operator', 'p(e, f, y | x)', 'The chance of every outcome for light entering as x: whether it escapes (e), through which facet (f), and where and which way it leaves (y). It is the product of the three heads.'],
+    x: [['entry'], 'Entry state x', 'the input', 'Ten numbers for the refracted ray: its position, its direction inside the diamond, the normal of the facet it entered, and its wavelength. Every term is conditioned on it.'],
+    s: [['entry','encoder','escape'], 'Escape head s(x)', 'sigmoid', 'The shared encoder reads x, and the escape head turns it into one probability: does the light leave the diamond?'],
+    f: [['entry','encoder','facet'], 'Facet head π(f | x)', 'softmax', 'From the same encoder features, a softmax over every triangle: given that it escapes, which facet does it leave through?'],
+    q: [['facet','embed','stochastic','clone','deep','trunk','exit'], 'Decoder q(y | x, f)', 'one of three', 'The chosen facet is looked up in the embedding and passed, with the entry features, to a decoder. It returns y: two numbers for where on the facet and two for which way. The deep decoder reads x through its own trunk.']
+  };
+  var NODE = { entry: 'x', encoder: null, escape: 's', facet: 'f', embed: 'q', stochastic: 'q', clone: 'q', deep: 'q', trunk: 'q', exit: 'all', camera: null, surface: null };
+  function mark(term) {
+    eqn.querySelectorAll('[data-term]').forEach(function (e) { e.classList.toggle('lit', !!term && e.dataset.term === term); });
+    eqn.classList.toggle('lit', !!term);
+  }
+  var held = null;
+  function on(term) { if (window.archLink) { var m = MAP[term]; window.archLink.light(m[0], m[1], m[2], m[3]); } mark(term); }
+  function off() { if (held) return; if (window.archLink) window.archLink.off(); mark(null); }
+  eqn.querySelectorAll('[data-term]').forEach(function (e) {
+    var t = e.dataset.term;
+    e.addEventListener('mouseenter', function (ev) { ev.stopPropagation(); if (!held) on(t); });
+    e.addEventListener('mouseleave', function () { if (!held) { var p = e.parentElement.closest('[data-term]'); p && p.matches(':hover') ? on(p.dataset.term) : off(); } });
+    e.addEventListener('focus', function () { on(t); });
+    e.addEventListener('blur', function () { held = null; off(); });
+    e.addEventListener('click', function (ev) { ev.stopPropagation(); if (held === t) { held = null; off(); } else { held = null; on(t); held = t; } });
+  });
+  document.addEventListener('click', function (ev) { if (held && !ev.target.closest('.eqn')) { held = null; off(); } });
+  // a block shown in the diagram lights its term here
+  document.addEventListener('archnode', function (ev) { if (held) return; var t = ev.detail ? NODE[ev.detail] : null; mark(t || null); });
 })();
 </script>
 </body>
