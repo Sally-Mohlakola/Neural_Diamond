@@ -153,12 +153,13 @@ td { color: var(--grey); }
 .eqterms > div { border: 1px solid var(--line); border-radius: 14px; padding: 16px; }
 .eqterms .t { font: 18px Georgia, 'Times New Roman', serif; }
 .eqterms p { font-size: 15px; color: var(--grey); margin-top: 8px; line-height: 1.45; }
-.eqn [data-term] { cursor: pointer; border-radius: 8px; transition: background .2s, box-shadow .2s, opacity .2s; }
-.eqn .eq .t { padding: 0 .12em; }
-.eqn.lit [data-term]:not(.lit) { opacity: .38; }
-.eqn .eq .t.lit { background: rgba(255,255,255,.1); box-shadow: 0 0 0 1px rgba(255,255,255,.35); }
-.eqterms > div.lit { border-color: rgba(255,255,255,.55); background: rgba(255,255,255,.04); }
-.eqn .t.x { color: #6fd6c4; }
+.eqn [data-term] { cursor: pointer; border-radius: 6px; padding: 0 .14em; box-shadow: inset 0 -1px 0 rgba(255,255,255,.18); transition: background .15s, box-shadow .15s, opacity .15s; }
+.eqn [data-term]:hover { box-shadow: inset 0 -2px 0 rgba(255,255,255,.55); }
+.eqn [data-term]:focus-visible { outline: 2px solid var(--white); outline-offset: 2px; }
+.eqn [data-term][aria-pressed="true"] { background: rgba(255,255,255,.12); box-shadow: 0 0 0 1.5px var(--white); }
+.eqn.lit [data-term][aria-pressed="false"], .eqn.lit [data-card]:not(.lit) { opacity: .3; }
+.eqterms > div.lit { border-color: var(--white); }
+.eqn.peek [data-term]:not(.peek) { opacity: .45; }
 .eqhint { margin-top: 14px; }
 .eqnote { font-size: 14px; color: var(--grey); margin-top: 18px; }
 @media (max-width: 720px) { .eqterms { grid-template-columns: minmax(0, 1fr); } }
@@ -455,14 +456,14 @@ td { color: var(--grey); }
 <div class="info" aria-live="polite"><div><h3 id="archTitle">The neural transport operator</h3><span class="tag" id="archTag">overview</span></div><p id="archText">The first surface is traced exactly. Inside the diamond, a network takes over. It decides whether the light escapes, through which facet, and where on that facet it leaves. The exit ray then goes back to the path tracer.</p></div>
 </div>
 <div class="eqn" aria-label="p of e, f, y given x equals s of x, times pi of f given x, times q of y given x and f">
-<p class="eq"><span class="t all" tabindex="0" data-term="all"><i>p</i>(<i>e</i>, <i>f</i>, <b>y</b> | <span class="t x" data-term="x"><b>x</b></span>)</span> = <span class="t s" tabindex="0" data-term="s"><i>s</i>(<b>x</b>)</span> · <span class="t f" tabindex="0" data-term="f"><i>π</i>(<i>f</i> | <b>x</b>)</span> · <span class="t q" tabindex="0" data-term="q"><i>q</i>(<b>y</b> | <b>x</b>, <i>f</i>)</span></p>
+<p class="eq"><span class="t all" role="button" tabindex="0" aria-pressed="false" data-term="all"><i>p</i>(<i>e</i>, <i>f</i>, <b>y</b> | <b>x</b>)</span> = <span class="t s" role="button" tabindex="0" aria-pressed="false" data-term="s"><i>s</i>(<b>x</b>)</span> · <span class="t f" role="button" tabindex="0" aria-pressed="false" data-term="f"><i>π</i>(<i>f</i> | <b>x</b>)</span> · <span class="t q" role="button" tabindex="0" aria-pressed="false" data-term="q"><i>q</i>(<b>y</b> | <b>x</b>, <i>f</i>)</span></p>
 <div class="eqterms">
-<div data-term="s"><span class="t s"><i>s</i>(<b>x</b>)</span><p><b>Escape head</b>, sigmoid. The chance that light entering as <b>x</b> leaves the diamond.</p></div>
-<div data-term="f"><span class="t f"><i>π</i>(<i>f</i> | <b>x</b>)</span><p><b>Facet head</b>, softmax. Given that it escapes, the chance it leaves through facet <i>f</i>.</p></div>
-<div data-term="q"><span class="t q"><i>q</i>(<b>y</b> | <b>x</b>, <i>f</i>)</span><p><b>Decoder</b>. Where on facet <i>f</i> it leaves and which way: four numbers <b>y</b>, two for position and two for direction.</p></div>
+<div data-card="s"><span class="t s"><i>s</i>(<b>x</b>)</span><p><b>Escape head</b>, sigmoid. The chance that light entering as <b>x</b> leaves the diamond.</p></div>
+<div data-card="f"><span class="t f"><i>π</i>(<i>f</i> | <b>x</b>)</span><p><b>Facet head</b>, softmax. Given that it escapes, the chance it leaves through facet <i>f</i>.</p></div>
+<div data-card="q"><span class="t q"><i>q</i>(<b>y</b> | <b>x</b>, <i>f</i>)</span><p><b>Decoder</b>. Where on facet <i>f</i> it leaves and which way: four numbers <b>y</b>, two for position and two for direction.</p></div>
 </div>
-<p class="hint eqhint">Hover or tap a term to see its blocks in the diagram above, and hover a block to see its term.</p>
-<p class="eqnote"><span class="t x" data-term="x"><b>x</b></span> is the entry state, ten numbers. The stochastic decoder learns <i>q</i> as a mixture of four Gaussians. The clone and the deep decoder put all of <i>q</i> on one predicted exit.</p>
+<p class="hint eqhint">Select a term to light its blocks in the diagram above. Select it again, or press Esc, to clear.</p>
+<p class="eqnote"><b>x</b> is the entry state, ten numbers. The stochastic decoder learns <i>q</i> as a mixture of four Gaussians. The clone and the deep decoder put all of <i>q</i> on one predicted exit.</p>
 </div>
 
 <div class="head" id="papers"><span class="tiny">[ 26 references ]</span><h2>How the papers connect</h2></div>
@@ -1567,25 +1568,36 @@ td { color: var(--grey); }
     f: [['entry','encoder','facet'], 'Facet head π(f | x)', 'softmax', 'From the same encoder features, a softmax over every triangle: given that it escapes, which facet does it leave through?'],
     q: [['facet','embed','stochastic','clone','deep','trunk','exit'], 'Decoder q(y | x, f)', 'one of three', 'The chosen facet is looked up in the embedding and passed, with the entry features, to a decoder. It returns y: two numbers for where on the facet and two for which way. The deep decoder reads x through its own trunk.']
   };
-  var NODE = { entry: 'x', encoder: null, escape: 's', facet: 'f', embed: 'q', stochastic: 'q', clone: 'q', deep: 'q', trunk: 'q', exit: 'all', camera: null, surface: null };
-  function mark(term) {
-    eqn.querySelectorAll('[data-term]').forEach(function (e) { e.classList.toggle('lit', !!term && e.dataset.term === term); });
-    eqn.classList.toggle('lit', !!term);
+  var NODE = { entry: null, encoder: null, escape: 's', facet: 'f', embed: 'q', stochastic: 'q', clone: 'q', deep: 'q', trunk: 'q', exit: 'all', camera: null, surface: null };
+  var terms = [].slice.call(eqn.querySelectorAll('[data-term]'));
+  var cards = [].slice.call(eqn.querySelectorAll('[data-card]'));
+  var active = null;
+  function paint() {
+    terms.forEach(function (e) { e.setAttribute('aria-pressed', String(e.dataset.term === active)); });
+    cards.forEach(function (c) { c.classList.toggle('lit', !!active && (c.dataset.card === active || active === 'all')); });
+    eqn.classList.toggle('lit', !!active);
   }
-  var held = null;
-  function on(term) { if (window.archLink) { var m = MAP[term]; window.archLink.light(m[0], m[1], m[2], m[3]); } mark(term); }
-  function off() { if (held) return; if (window.archLink) window.archLink.off(); mark(null); }
-  eqn.querySelectorAll('[data-term]').forEach(function (e) {
-    var t = e.dataset.term;
-    e.addEventListener('mouseenter', function (ev) { ev.stopPropagation(); if (!held) on(t); });
-    e.addEventListener('mouseleave', function () { if (!held) { var p = e.parentElement.closest('[data-term]'); p && p.matches(':hover') ? on(p.dataset.term) : off(); } });
-    e.addEventListener('focus', function () { on(t); });
-    e.addEventListener('blur', function () { held = null; off(); });
-    e.addEventListener('click', function (ev) { ev.stopPropagation(); if (held === t) { held = null; off(); } else { held = null; on(t); held = t; } });
+  function set(term) {
+    active = term;
+    if (window.archLink) {
+      if (term) { var m = MAP[term]; window.archLink.off(); window.archLink.light(m[0], m[1], m[2], m[3]); }
+      else window.archLink.off();
+    }
+    paint();
+  }
+  terms.forEach(function (e) {
+    function toggle() { set(active === e.dataset.term ? null : e.dataset.term); }
+    e.addEventListener('click', toggle);
+    e.addEventListener('keydown', function (ev) { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); toggle(); } });
   });
-  document.addEventListener('click', function (ev) { if (held && !ev.target.closest('.eqn')) { held = null; off(); } });
-  // a block shown in the diagram lights its term here
-  document.addEventListener('archnode', function (ev) { if (held) return; var t = ev.detail ? NODE[ev.detail] : null; mark(t || null); });
+  document.addEventListener('keydown', function (ev) { if (ev.key === 'Escape' && active) set(null); });
+  // a block hovered in the diagram previews its term, without changing the selection
+  document.addEventListener('archnode', function (ev) {
+    if (active) return;
+    var t = ev.detail ? NODE[ev.detail] : null;
+    terms.forEach(function (e) { e.classList.toggle('peek', !!t && e.dataset.term === t); });
+    eqn.classList.toggle('peek', !!t);
+  });
 })();
 </script>
 </body>
