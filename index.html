@@ -1003,7 +1003,7 @@ td { color: var(--grey); }
   }
   window.archLink = {
     light: function (ids, title, tag, text) {
-      if (pinned) return;
+      if (pinned) reset();
       clear(); box.classList.add('dim');
       ids.forEach(function (id) { if (nodeEls[id]) nodeEls[id].classList.add('on'); });
       Object.keys(edgeEls).forEach(function (k) {
@@ -1577,12 +1577,15 @@ td { color: var(--grey); }
     cards.forEach(function (c) { c.classList.toggle('lit', !!active && (c.dataset.card === active || active === 'all')); });
     eqn.classList.toggle('lit', !!active);
   }
+  var driving = false;   // true while the equation itself is changing the diagram
   function set(term) {
     active = term;
+    driving = true;
     if (window.archLink) {
       if (term) { var m = MAP[term]; window.archLink.off(); window.archLink.light(m[0], m[1], m[2], m[3]); }
       else window.archLink.off();
     }
+    driving = false;
     paint();
   }
   terms.forEach(function (e) {
@@ -1591,9 +1594,14 @@ td { color: var(--grey); }
     e.addEventListener('keydown', function (ev) { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); toggle(); } });
   });
   document.addEventListener('keydown', function (ev) { if (ev.key === 'Escape' && active) set(null); });
-  // a block hovered in the diagram previews its term, without changing the selection
+  // anything else that changes the diagram (a hovered or selected block, a followed ray, Reset) drops the selection
+  function dropped() { if (active && !driving) { active = null; paint(); } }
+  var arch = document.getElementById('arch');
+  if (arch) arch.addEventListener('click', function (ev) { if (ev.target.closest('button')) dropped(); });
+  // with nothing selected, a block hovered in the diagram previews its term
   document.addEventListener('archnode', function (ev) {
-    if (active) return;
+    if (driving) return;
+    dropped();
     var t = ev.detail ? NODE[ev.detail] : null;
     terms.forEach(function (e) { e.classList.toggle('peek', !!t && e.dataset.term === t); });
     eqn.classList.toggle('peek', !!t);
