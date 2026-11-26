@@ -1142,7 +1142,7 @@ td { color: var(--grey); }
   ];
   var links = [
     [1, 4, 'Both store how a material looks in small networks that run during rendering.'],
-    [4, 5, 'Both learn how light reflects off a surface, stored in a network.'],
+    [4, 5, 'Both learn how light reflects off a surface, stored in a network, and both stop short of transparency. NeuMIP models opaque surfaces only, and Zeltner et al. name semi-transparent materials as future work. Neither reaches a transparent, high-index material like diamond, where light travels inside: the gap our operator takes up.'],
     [5, 6, 'Both are neural materials. NeuMIP learns a whole textured surface, Neural BRDF a single point’s reflection.'],
     [1, 7, 'Both replace light that scatters many times inside a material with a learned model.'],
     [7, 8, 'Both learn light transport inside a volume, and both assume it scatters smoothly, unlike a diamond.'],
